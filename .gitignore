@@ -1,0 +1,11 @@
+# Ignore dependencies
+node_modules/
+
+# Ignore large video files
+videos/*.mp4
+videos/*.mkv
+videos/*.avi
+
+# OS files
+Thumbs.db
+.DS_Store
