@@ -41,7 +41,7 @@ self.addEventListener('fetch', (event) => {
     const url = new URL(event.request.url);
 
     // For audio stream requests or API endpoints, use Network-First strategy
-    if (url.pathname.startsWith('/api/') || url.pathname.endsWith('.mp3') || url.hostname.includes('jamendo') || url.hostname.includes('github')) {
+    if (url.pathname.startsWith('/api/') || url.pathname.endsWith('.mp3') || url.hostname.includes('jamendo') || url.hostname.includes('github') || url.hostname.includes('jsdelivr')) {
         event.respondWith(
             fetch(event.request).catch(() => {
                 return caches.match(event.request);
