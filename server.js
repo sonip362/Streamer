@@ -149,6 +149,58 @@ app.get('/api/jamendo/stream/:trackId', async (req, res) => {
         if (!res.headersSent) res.status(500).send('Stream proxy error');
     }
 });
+
+// ─── GitHub Music Proxy ─────────────────────────────────────────────────────
+// Proxies GitHub Raw files through localhost to bypass ISP/DNS/firewall blockades
+// and handle special characters in filenames with proper Range support.
+app.get('/api/stream/:filename', async (req, res) => {
+    try {
+        const rawFilename = req.params.filename;
+        const encodedFilename = encodeURIComponent(rawFilename);
+
+        // 1. If file exists on local disk, serve locally first
+        const localPath = path.join(musicDir, rawFilename);
+        if (fs.existsSync(localPath)) {
+            return res.sendFile(localPath);
+        }
+        const rootPath = path.join(__dirname, rawFilename);
+        if (fs.existsSync(rootPath)) {
+            return res.sendFile(rootPath);
+        }
+
+        // 2. Fetch from GitHub Raw
+        const githubUrl = `https://raw.githubusercontent.com/sonip362/Video/main/Music/${encodedFilename}`;
+        const rangeHeader = req.headers['range'];
+        const streamHeaders = {
+            'User-Agent': 'Node-Audio-Streamer'
+        };
+        if (rangeHeader) {
+            streamHeaders['Range'] = rangeHeader;
+        }
+
+        const audioRes = await fetch(githubUrl, { headers: streamHeaders });
+        if (!audioRes.ok && audioRes.status !== 206) {
+            return res.status(audioRes.status).send('GitHub stream error');
+        }
+
+        res.setHeader('Content-Type', audioRes.headers.get('content-type') || 'audio/mpeg');
+        res.setHeader('Accept-Ranges', 'bytes');
+        res.setHeader('Access-Control-Allow-Origin', '*');
+
+        const contentLength = audioRes.headers.get('content-length');
+        const contentRange = audioRes.headers.get('content-range');
+        if (contentLength) res.setHeader('Content-Length', contentLength);
+        if (contentRange) res.setHeader('Content-Range', contentRange);
+
+        res.status(audioRes.status);
+
+        const { Readable } = require('stream');
+        Readable.fromWeb(audioRes.body).pipe(res);
+    } catch (err) {
+        console.error('[Stream Proxy] Error:', err.message);
+        if (!res.headersSent) res.status(500).send('Stream proxy error');
+    }
+});
 // ─────────────────────────────────────────────────────────────────────────────
 
 // Video streaming endpoint

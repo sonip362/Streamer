@@ -227,10 +227,11 @@ async function fetchMetadataForMP3(filename) {
     const encodedFilename = encodeURIComponent(filename);
     const localUrl = "/" + encodedFilename;
     const musicSubfolderUrl = "/Music/" + encodedFilename;
+    const proxyUrl = "/api/stream/" + encodedFilename;
     const githubUrl = GITHUB_BASE + encodedFilename;
 
     let arrayBuffer = null;
-    let streamUrl = githubUrl;
+    let streamUrl = proxyUrl;
 
     try {
         const res = await fetch(localUrl, { headers: { 'Range': 'bytes=0-8192' } });
@@ -944,24 +945,39 @@ function loadTrack(index) {
     const track = playlist[currentIndex];
     currentPlayingTrack = track;
 
-    const streamUrl = track.streamUrl || (GITHUB_BASE + encodeURIComponent(track.file));
-    const githubFallback = GITHUB_BASE + encodeURIComponent(track.file);
+    const encodedFile = encodeURIComponent(track.file);
+    const localProxyUrl = '/api/stream/' + encodedFile;
+    const githubUrl = GITHUB_BASE + encodedFile;
+    const streamUrl = track.streamUrl || localProxyUrl;
 
     showSpinner("Loading audio stream...");
     audio.src = streamUrl;
 
-    audio.onerror = () => {
+    let triedFallback = false;
+    audio.onerror = (e) => {
         if (!navigator.onLine) {
             showSpinner("No Internet Connection");
             if (streamStatus) streamStatus.classList.add('offline');
             if (statusText) statusText.textContent = "Offline • No Internet";
             return;
         }
-        console.warn(`Stream failed for ${streamUrl}, trying fallback.`);
-        if (currentSource === 'local') {
-            audio.src = githubFallback;
+        console.warn(`Stream failed for ${audio.src}, error code: ${audio.error ? audio.error.code : 'unknown'}`);
+
+        if (!triedFallback) {
+            triedFallback = true;
+            // If primary failed, switch between proxy <-> direct GitHub Raw URL
+            const nextFallback = audio.src.includes('/api/stream/') ? githubUrl : localProxyUrl;
+            console.log("Switching audio source to fallback:", nextFallback);
+            audio.src = nextFallback;
+            if (isPlaying) {
+                audio.play().catch(err => console.error("Playback error after fallback:", err));
+            }
+        } else {
+            console.error("All stream sources failed for track:", track.file);
+            hideSpinner();
+            showToast("Stream Error", "Failed to load audio stream from all endpoints", false);
+            hideToast(3000);
         }
-        if (isPlaying) audio.play().catch(e => console.error(e));
     };
 
     const artworkContainer = document.querySelector('.artwork-container');
