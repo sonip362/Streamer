@@ -1,4 +1,7 @@
-const GITHUB_BASE = "https://raw.githubusercontent.com/sonip362/Video/main/Music/";
+// CDN Base URLs for zero-backend static hosting (GitHub Pages)
+const JSDELIVR_BASE = "https://cdn.jsdelivr.net/gh/sonip362/Video@main/Music/";
+const GITHUB_RAW_BASE = "https://raw.githubusercontent.com/sonip362/Video/main/Music/";
+const GITHUB_BASE = JSDELIVR_BASE; // Default to JSDelivr global edge CDN
 const JAMENDO_CLIENT_ID = "8dc02fdd";
 
 // Track list extracted directly from MP3 files or Jamendo API
@@ -225,33 +228,34 @@ function fallbackMetadataFromFilename(filename) {
 // Fetch MP3 file header bytes & parse ID3 tags
 async function fetchMetadataForMP3(filename) {
     const encodedFilename = encodeURIComponent(filename);
+    const jsdelivrUrl = JSDELIVR_BASE + encodedFilename;
+    const githubRawUrl = GITHUB_RAW_BASE + encodedFilename;
     const localUrl = "/" + encodedFilename;
     const musicSubfolderUrl = "/Music/" + encodedFilename;
-    const proxyUrl = "/api/stream/" + encodedFilename;
-    const githubUrl = GITHUB_BASE + encodedFilename;
 
     let arrayBuffer = null;
-    let streamUrl = proxyUrl;
+    let streamUrl = jsdelivrUrl;
 
+    // Try reading header bytes for ID3 tag parsing
     try {
-        const res = await fetch(localUrl, { headers: { 'Range': 'bytes=0-8192' } });
+        const res = await fetch(jsdelivrUrl, { headers: { 'Range': 'bytes=0-8192' } });
         if (res.ok || res.status === 206) {
             arrayBuffer = await res.arrayBuffer();
-            streamUrl = localUrl;
+            streamUrl = jsdelivrUrl;
         } else throw new Error();
     } catch (e) {
         try {
-            const res = await fetch(musicSubfolderUrl, { headers: { 'Range': 'bytes=0-8192' } });
+            const res = await fetch(githubRawUrl, { headers: { 'Range': 'bytes=0-8192' } });
             if (res.ok || res.status === 206) {
                 arrayBuffer = await res.arrayBuffer();
-                streamUrl = musicSubfolderUrl;
+                streamUrl = githubRawUrl;
             } else throw new Error();
         } catch (err) {
             try {
-                const res = await fetch(githubUrl, { headers: { 'Range': 'bytes=0-8192' } });
+                const res = await fetch(musicSubfolderUrl, { headers: { 'Range': 'bytes=0-8192' } });
                 if (res.ok || res.status === 206) {
                     arrayBuffer = await res.arrayBuffer();
-                    streamUrl = githubUrl;
+                    streamUrl = musicSubfolderUrl;
                 }
             } catch (err2) { }
         }
@@ -382,8 +386,8 @@ async function fetchJamendoTracks(sourceType, query = "", append = false) {
             const newTracks = data.results.map(item => ({
                 id: item.id,
                 file: item.name,
-                // Route through server proxy so we always get a fresh signed URL
-                streamUrl: `/api/jamendo/stream/${item.id}`,
+                // Client-side direct stream for GitHub Pages static hosting
+                streamUrl: item.audio,
                 downloadUrl: item.audiodownload || item.audio,
                 title: item.name,
                 artist: item.artist_name,
@@ -946,14 +950,14 @@ function loadTrack(index) {
     currentPlayingTrack = track;
 
     const encodedFile = encodeURIComponent(track.file);
-    const localProxyUrl = '/api/stream/' + encodedFile;
-    const githubUrl = GITHUB_BASE + encodedFile;
-    const streamUrl = track.streamUrl || localProxyUrl;
+    const jsdelivrUrl = JSDELIVR_BASE + encodedFile;
+    const rawGithubUrl = GITHUB_RAW_BASE + encodedFile;
+    const streamUrl = track.streamUrl || jsdelivrUrl;
 
     showSpinner("Loading audio stream...");
     audio.src = streamUrl;
 
-    let triedFallback = false;
+    let fallbackStage = 0;
     audio.onerror = (e) => {
         if (!navigator.onLine) {
             showSpinner("No Internet Connection");
@@ -961,21 +965,26 @@ function loadTrack(index) {
             if (statusText) statusText.textContent = "Offline • No Internet";
             return;
         }
-        console.warn(`Stream failed for ${audio.src}, error code: ${audio.error ? audio.error.code : 'unknown'}`);
+        console.warn(`Stream failed for ${audio.src}, trying CDN fallback stage ${fallbackStage + 1}`);
 
-        if (!triedFallback) {
-            triedFallback = true;
-            // If primary failed, switch between proxy <-> direct GitHub Raw URL
-            const nextFallback = audio.src.includes('/api/stream/') ? githubUrl : localProxyUrl;
-            console.log("Switching audio source to fallback:", nextFallback);
-            audio.src = nextFallback;
-            if (isPlaying) {
-                audio.play().catch(err => console.error("Playback error after fallback:", err));
-            }
+        if (fallbackStage === 0) {
+            fallbackStage = 1;
+            // Try GitHub Raw CDN
+            const next = audio.src.includes('cdn.jsdelivr.net') ? rawGithubUrl : jsdelivrUrl;
+            console.log("Switching audio source to:", next);
+            audio.src = next;
+            if (isPlaying) audio.play().catch(err => console.error(err));
+        } else if (fallbackStage === 1 && currentSource === 'local') {
+            fallbackStage = 2;
+            // Try relative static path (if hosted directly with files on GitHub Pages or local)
+            const next = 'Music/' + encodedFile;
+            console.log("Switching audio source to relative path:", next);
+            audio.src = next;
+            if (isPlaying) audio.play().catch(err => console.error(err));
         } else {
-            console.error("All stream sources failed for track:", track.file);
+            console.error("All static stream mirrors failed for track:", track.file);
             hideSpinner();
-            showToast("Stream Error", "Failed to load audio stream from all endpoints", false);
+            showToast("Stream Error", "Audio stream could not be loaded from CDN", false);
             hideToast(3000);
         }
     };
