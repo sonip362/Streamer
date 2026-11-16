@@ -77,7 +77,7 @@ const modalTrackArtist = document.getElementById('modalTrackArtist');
 const btnModalClose = document.getElementById('btnModalClose');
 const btnModalCancel = document.getElementById('btnModalCancel');
 const btnDownloadNormal = document.getElementById('btnDownloadNormal');
-const btnDownload8D = document.getElementById('btnDownload8D');
+const btnDownloadAdvanced = document.getElementById('btnDownloadAdvanced');
 
 const toastContainer = document.getElementById('toastContainer');
 const toastSpinner = document.getElementById('toastSpinner');
@@ -619,10 +619,9 @@ function drawLiveWaves() {
     ctx.lineTo(w, centerY);
     ctx.stroke();
 
-    const numBars = 30;
-    const gap = 6 * dpr;
-    const totalGaps = (numBars + 1) * gap;
-    const barWidth = Math.max(3 * dpr, (w - totalGaps) / numBars);
+    const numBars = Math.min(30, Math.max(16, Math.floor(w / (10 * dpr))));
+    const gap = Math.max(2 * dpr, (w * 0.20) / (numBars + 1));
+    const barWidth = Math.max(2 * dpr, (w - (numBars + 1) * gap) / numBars);
 
     for (let i = 0; i < numBars; i++) {
         let barHeight;
@@ -666,13 +665,22 @@ function generateShuffleOrder() {
 function openDownloadModal(track) {
     selectedTrackForDownload = track;
     modalTrackTitle.textContent = track.title;
+    modalTrackTitle.title = track.title;
     modalTrackArtist.textContent = track.artist;
+    modalTrackArtist.title = track.artist;
     downloadModal.style.display = 'flex';
+    void downloadModal.offsetHeight;
+    downloadModal.classList.add('show');
 }
 
 function closeDownloadModal() {
-    downloadModal.style.display = 'none';
-    selectedTrackForDownload = null;
+    downloadModal.classList.remove('show');
+    setTimeout(() => {
+        if (!downloadModal.classList.contains('show')) {
+            downloadModal.style.display = 'none';
+            selectedTrackForDownload = null;
+        }
+    }, 300);
 }
 
 function triggerDownload(url, filename) {
@@ -844,13 +852,22 @@ function escapeHtml(str) {
         .replace(/'/g, '&#039;');
 }
 
-function formatPlaylistTitle(title, maxLength = 18) {
+function formatPlaylistTitle(title, maxLength = 22) {
     if (!title) return "";
     const cleanTitle = title.trim();
     if (cleanTitle.length <= maxLength) {
         return cleanTitle;
     }
     return `${cleanTitle.substring(0, maxLength - 3).trim()}...`;
+}
+
+function formatPlaylistArtist(artist, maxLength = 24) {
+    if (!artist) return "--";
+    const cleanArtist = artist.trim();
+    if (cleanArtist.length <= maxLength) {
+        return cleanArtist;
+    }
+    return `${cleanArtist.substring(0, maxLength - 3).trim()}...`;
 }
 
 function renderPlaylist(filterQuery = "") {
@@ -869,7 +886,8 @@ function renderPlaylist(filterQuery = "") {
             (currentPlayingTrack.title && currentPlayingTrack.title === track.title)
         );
 
-        const formattedTitle = formatPlaylistTitle(track.title);
+        const formattedTitle = formatPlaylistTitle(track.title, 22);
+        const formattedArtist = formatPlaylistArtist(track.artist, 24);
         const fullTitle = escapeHtml(track.title);
         const fullArtist = escapeHtml(track.artist);
 
@@ -887,15 +905,15 @@ function renderPlaylist(filterQuery = "") {
                 </div>
                 <div class="track-details">
                     <span class="item-title" title="${fullTitle}">${escapeHtml(formattedTitle)}</span>
-                    <span class="item-artist" title="${fullArtist}">${fullArtist}</span>
+                    <span class="item-artist" title="${fullArtist}">${escapeHtml(formattedArtist)}</span>
                 </div>
             </div>
             <div class="item-right">
-                <button class="btn-item-download" title="Download Options" onclick="event.stopPropagation(); handleDownloadClick(${actualIndex})">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-                        <polyline points="7 10 12 15 17 10"></polyline>
-                        <line x1="12" y1="15" x2="12" y2="3"></line>
+                <button class="btn-item-menu" title="Track Options" onclick="event.stopPropagation(); handleTrackMenuClick(${actualIndex})">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+                        <circle cx="12" cy="5" r="2"></circle>
+                        <circle cx="12" cy="12" r="2"></circle>
+                        <circle cx="12" cy="19" r="2"></circle>
                     </svg>
                 </button>
                 <span class="source-tag">${track.sourceTag || "MP3 Tag"}</span>
@@ -906,12 +924,13 @@ function renderPlaylist(filterQuery = "") {
     });
 }
 
-window.handleDownloadClick = function (index) {
+window.handleTrackMenuClick = function (index) {
     const track = playlist[index];
     if (track) {
         openDownloadModal(track);
     }
 };
+window.handleDownloadClick = window.handleTrackMenuClick;
 
 btnModalClose.addEventListener('click', closeDownloadModal);
 if (btnModalCancel) btnModalCancel.addEventListener('click', closeDownloadModal);
@@ -920,12 +939,31 @@ downloadModal.addEventListener('click', (e) => {
     if (e.target === downloadModal) closeDownloadModal();
 });
 
+let isMainJobProcessing = false;
+let isMainJobAborted = false;
+const MAIN_TAB_ID = 'main_tab_' + Math.random().toString(36).substring(2, 10);
+
+function cancelCurrentDownloadJob() {
+    isMainJobAborted = true;
+    is8DProcessingAborted = true;
+    try {
+        localStorage.removeItem('streamer_download_job');
+        localStorage.setItem('streamer_download_cancelled', Date.now().toString());
+    } catch (e) {}
+    hideToast(0);
+}
+
 if (btnToastCancel) {
-    btnToastCancel.addEventListener('click', () => {
+    btnToastCancel.addEventListener('click', cancelCurrentDownloadJob);
+}
+
+window.addEventListener('storage', (e) => {
+    if (e.key === 'streamer_download_cancelled') {
+        isMainJobAborted = true;
         is8DProcessingAborted = true;
         hideToast(0);
-    });
-}
+    }
+});
 
 btnDownloadNormal.addEventListener('click', () => {
     if (!selectedTrackForDownload) return;
@@ -938,10 +976,342 @@ btnDownloadNormal.addEventListener('click', () => {
     hideToast(2500);
 });
 
-btnDownload8D.addEventListener('click', () => {
-    if (!selectedTrackForDownload) return;
-    processAndDownload8D(selectedTrackForDownload);
+if (btnDownloadAdvanced) {
+    btnDownloadAdvanced.addEventListener('click', () => {
+        if (!selectedTrackForDownload) return;
+        const t = selectedTrackForDownload;
+        closeDownloadModal();
+        const params = new URLSearchParams({
+            title: t.title || '',
+            artist: t.artist || '',
+            file: t.file || '',
+            streamUrl: t.streamUrl || ''
+        });
+        sessionStorage.setItem('advancedDownloadTrack', JSON.stringify(t));
+        window.open(`download.html?${params.toString()}`, '_blank');
+    });
+}
+
+// =============================================================
+// BACKGROUND AUDIO PROCESSING SYNC & TAKEOVER ENGINE
+// =============================================================
+function generateReverbImpulse(context, duration, decay) {
+    const sampleRate = context.sampleRate;
+    const length = Math.floor(sampleRate * duration);
+    const impulse = context.createBuffer(2, length, sampleRate);
+    const left = impulse.getChannelData(0);
+    const right = impulse.getChannelData(1);
+    for (let i = 0; i < length; i++) {
+        const factor = Math.pow(1 - i / length, decay);
+        left[i] = (Math.random() * 2 - 1) * factor;
+        right[i] = (Math.random() * 2 - 1) * factor;
+    }
+    return impulse;
+}
+
+async function claimAndRunJob(job) {
+    if (isMainJobProcessing) return;
+
+    // Check if another tab is already attempting to claim
+    if (job.claimingTabId && job.claimingTabId !== MAIN_TAB_ID) return;
+
+    // Tentative claim
+    job.claimingTabId = MAIN_TAB_ID;
+    job.isAbandoned = false;
+    job.lastHeartbeat = Date.now();
+    try {
+        localStorage.setItem('streamer_download_job', JSON.stringify(job));
+    } catch (e) { return; }
+
+    // Wait 120ms to resolve concurrency races across tabs
+    await new Promise(r => setTimeout(r, 120));
+
+    try {
+        const fresh = JSON.parse(localStorage.getItem('streamer_download_job'));
+        if (!fresh || fresh.claimingTabId !== MAIN_TAB_ID || fresh.downloadTriggered || fresh.isComplete) {
+            // Another tab claimed it or already finished, back off!
+            return;
+        }
+
+        // Lock confirmed! Own the job:
+        fresh.ownerTabId = MAIN_TAB_ID;
+        fresh.claimingTabId = null;
+        fresh.ownerType = 'main_page';
+        fresh.lastHeartbeat = Date.now();
+        localStorage.setItem('streamer_download_job', JSON.stringify(fresh));
+
+        executeOfflineJobInMainPage(fresh);
+    } catch (e) {}
+}
+
+async function executeOfflineJobInMainPage(job) {
+    if (isMainJobProcessing) return;
+    isMainJobProcessing = true;
+    isMainJobAborted = false;
+
+    function updateMainJobProgress(progress, status) {
+        if (isMainJobAborted) return;
+        const p = Math.min(100, Math.max(0, Math.round(progress)));
+        showToast(`Processing: ${job.title}`, `${status} (${p}%)`, true);
+        try {
+            job.progress = p;
+            job.status = status;
+            job.ownerTabId = MAIN_TAB_ID;
+            job.ownerType = 'main_page';
+            job.lastHeartbeat = Date.now();
+            localStorage.setItem('streamer_download_job', JSON.stringify(job));
+        } catch (e) {}
+    }
+
+    try {
+        updateMainJobProgress(15, 'Fetching audio stream...');
+        if (isMainJobAborted) return;
+
+        const streamUrl = job.streamUrl || (job.file ? GITHUB_BASE + job.file : '');
+        if (!streamUrl) throw new Error('No audio URL found for this track.');
+
+        let response;
+        try {
+            response = await fetch(streamUrl);
+            if (!response.ok) throw new Error('Stream fetch failed');
+        } catch (e) {
+            if (job.file) {
+                response = await fetch(GITHUB_BASE + job.file);
+            } else {
+                throw e;
+            }
+        }
+
+        if (isMainJobAborted) return;
+        updateMainJobProgress(30, 'Decoding audio data...');
+
+        const arrayBuf = await response.arrayBuffer();
+        if (isMainJobAborted) return;
+
+        const decodeCtx = new (window.AudioContext || window.webkitAudioContext)();
+        const decodedBuffer = await decodeCtx.decodeAudioData(arrayBuf);
+        decodeCtx.close();
+
+        if (isMainJobAborted) return;
+        updateMainJobProgress(50, 'Applying audio processing...');
+
+        const settings = job.settings || { eqGains: [0, 0, 0, 0, 0], reverb: 'none', is8D: false, speed: 1.0 };
+        const activeSpeed = settings.speed || 1.0;
+        const sampleRate = decodedBuffer.sampleRate;
+        const originalDuration = decodedBuffer.duration;
+        const renderedDuration = originalDuration / activeSpeed;
+
+        const offlineCtx = new OfflineAudioContext(2, Math.floor(sampleRate * renderedDuration), sampleRate);
+
+        const source = offlineCtx.createBufferSource();
+        source.buffer = decodedBuffer;
+        source.playbackRate.value = activeSpeed;
+
+        // Equalizer Chain
+        const frequencies = [60, 250, 1000, 4000, 16000];
+        const filterTypes = ['lowshelf', 'peaking', 'peaking', 'peaking', 'highshelf'];
+        const eqGains = settings.eqGains || [0, 0, 0, 0, 0];
+
+        const offlineFilters = frequencies.map((freq, i) => {
+            const filter = offlineCtx.createBiquadFilter();
+            filter.type = filterTypes[i];
+            filter.frequency.value = freq;
+            filter.gain.value = eqGains[i] || 0;
+            if (filterTypes[i] === 'peaking') filter.Q.value = 1.0;
+            return filter;
+        });
+
+        for (let i = 0; i < offlineFilters.length - 1; i++) {
+            offlineFilters[i].connect(offlineFilters[i + 1]);
+        }
+        source.connect(offlineFilters[0]);
+        let lastNode = offlineFilters[offlineFilters.length - 1];
+
+        // Reverb
+        const activeReverb = settings.reverb || 'none';
+        if (activeReverb !== 'none') {
+            if (isMainJobAborted) return;
+            updateMainJobProgress(65, 'Synthesizing room reverb...');
+            const configs = {
+                room: { duration: 0.8, decay: 2.2, wet: 0.35 },
+                studio: { duration: 1.3, decay: 2.6, wet: 0.42 },
+                hall: { duration: 2.6, decay: 3.2, wet: 0.52 },
+                arena: { duration: 4.2, decay: 3.8, wet: 0.60 }
+            };
+            const cfg = configs[activeReverb] || configs.room;
+            const offlineReverb = offlineCtx.createConvolver();
+            offlineReverb.buffer = generateReverbImpulse(offlineCtx, cfg.duration, cfg.decay);
+
+            const dryGain = offlineCtx.createGain();
+            const wetGain = offlineCtx.createGain();
+            dryGain.gain.value = 1.0 - cfg.wet * 0.4;
+            wetGain.gain.value = cfg.wet;
+
+            const reverbOutput = offlineCtx.createGain();
+            lastNode.connect(dryGain);
+            lastNode.connect(offlineReverb);
+            offlineReverb.connect(wetGain);
+
+            dryGain.connect(reverbOutput);
+            wetGain.connect(reverbOutput);
+            lastNode = reverbOutput;
+        }
+
+        // 8D Orbit
+        if (settings.is8D) {
+            if (isMainJobAborted) return;
+            updateMainJobProgress(78, 'Rendering 360° spatial orbit...');
+            const panner = offlineCtx.createPanner();
+            panner.panningModel = 'HRTF';
+            panner.distanceModel = 'linear';
+            panner.rolloffFactor = 0;
+            panner.coneOuterGain = 1;
+
+            const timeStep = 0.05;
+            let angle = 0;
+            for (let t = 0; t < renderedDuration; t += timeStep) {
+                angle += 0.035 * (timeStep / (1 / 60));
+                const radius = 1.6;
+                const x = Math.sin(angle) * radius;
+                const z = Math.cos(angle) * radius;
+                const y = Math.sin(angle * 0.5) * 0.8;
+
+                panner.positionX.setValueAtTime(x, t);
+                panner.positionY.setValueAtTime(y, t);
+                panner.positionZ.setValueAtTime(z, t);
+            }
+            lastNode.connect(panner);
+            lastNode = panner;
+        }
+
+        const compressor = offlineCtx.createDynamicsCompressor();
+        compressor.threshold.value = -24;
+        compressor.knee.value = 12;
+        compressor.ratio.value = 8;
+        compressor.attack.value = 0.003;
+        compressor.release.value = 0.15;
+        lastNode.connect(compressor);
+        compressor.connect(offlineCtx.destination);
+
+        source.start(0);
+
+        if (isMainJobAborted) return;
+        updateMainJobProgress(88, 'Rendering audio in browser...');
+
+        const renderedBuffer = await offlineCtx.startRendering();
+
+        if (isMainJobAborted) return;
+        updateMainJobProgress(96, 'Encoding 16-bit WAV file...');
+
+        const wavBlob = audioBufferToWav(renderedBuffer);
+        const downloadUrl = URL.createObjectURL(wavBlob);
+
+        const cleanTitle = (job.title || 'Audio').replace(/[/\\?%*:|"<>]/g, '');
+        const cleanArtist = (job.artist || 'Artist').replace(/[/\\?%*:|"<>]/g, '');
+        const filename = `${cleanArtist} - ${cleanTitle} (Custom).wav`;
+
+        if (isMainJobAborted) return;
+
+        // ATOMIC DOWNLOAD CHECK TO PREVENT DUPLICATES
+        try {
+            const checkJob = JSON.parse(localStorage.getItem('streamer_download_job'));
+            if (checkJob && (checkJob.downloadTriggered || checkJob.isCancelled)) {
+                console.log("Download already triggered or cancelled. Skipping duplicate.");
+                return;
+            }
+            if (checkJob) {
+                checkJob.downloadTriggered = true;
+                checkJob.isComplete = true;
+                localStorage.setItem('streamer_download_job', JSON.stringify(checkJob));
+            }
+        } catch (e) {}
+
+        triggerDownload(downloadUrl, filename);
+
+        showToast(`Download Ready: ${job.title}`, `Saved "${filename}" to downloads`, false);
+        hideToast(3500);
+
+        setTimeout(() => {
+            try { localStorage.removeItem('streamer_download_job'); } catch (e) {}
+        }, 3500);
+
+    } catch (err) {
+        if (isMainJobAborted) return;
+        console.error('Background render error:', err);
+        showToast('Processing Error', 'Could not complete background render', false);
+        hideToast(3000);
+        try { localStorage.removeItem('streamer_download_job'); } catch (e) {}
+    } finally {
+        isMainJobProcessing = false;
+    }
+}
+
+function checkBackgroundDownloadJob() {
+    try {
+        const stored = localStorage.getItem('streamer_download_job');
+        if (!stored) {
+            if (isMainJobProcessing) {
+                isMainJobAborted = true;
+                isMainJobProcessing = false;
+                hideToast(0);
+            }
+            return;
+        }
+
+        const job = JSON.parse(stored);
+        if (!job || !job.timestamp) return;
+
+        // Expire jobs older than 3 minutes or cancelled
+        if (job.isCancelled || (Date.now() - job.timestamp > 180000)) {
+            isMainJobAborted = true;
+            isMainJobProcessing = false;
+            hideToast(0);
+            localStorage.removeItem('streamer_download_job');
+            return;
+        }
+
+        // If completed or download already triggered
+        if (job.isComplete || job.downloadTriggered) {
+            showToast(`Download Ready: ${job.title}`, `Processed audio saved successfully`, false);
+            hideToast(3500);
+            setTimeout(() => {
+                try { localStorage.removeItem('streamer_download_job'); } catch (e) {}
+            }, 3500);
+            return;
+        }
+
+        // Active Job: update UI toast
+        showToast(`Processing: ${job.title}`, `${job.status} (${job.progress}%)`, true);
+
+        // Check if an active worker currently owns this job and is alive (10s threshold)
+        const hasLivingOwner = job.ownerTabId && (Date.now() - (job.lastHeartbeat || 0) < 10000) && !job.isAbandoned;
+
+        // If this tab is the owner, refresh our heartbeat
+        if (job.ownerTabId === MAIN_TAB_ID && isMainJobProcessing) {
+            job.lastHeartbeat = Date.now();
+            localStorage.setItem('streamer_download_job', JSON.stringify(job));
+            return;
+        }
+
+        // If no living owner and we are not already processing, attempt atomic claim
+        if (!hasLivingOwner && !isMainJobProcessing) {
+            claimAndRunJob(job);
+        }
+
+    } catch (e) {
+        console.warn('Storage sync error:', e);
+    }
+}
+
+window.addEventListener('storage', (e) => {
+    if (e.key === 'streamer_download_job') {
+        checkBackgroundDownloadJob();
+    }
 });
+
+// Periodic check for same-origin tabs
+setInterval(checkBackgroundDownloadJob, 1000);
+checkBackgroundDownloadJob();
 
 function loadTrack(index) {
     if (!playlist || playlist.length === 0) return;
@@ -1000,9 +1370,9 @@ function loadTrack(index) {
         }
     }
 
-    currentTitleEl.textContent = formatPlaylistTitle(track.title);
+    currentTitleEl.textContent = formatPlaylistTitle(track.title, 26);
     currentTitleEl.title = track.title;
-    currentArtistEl.textContent = track.artist;
+    currentArtistEl.textContent = formatPlaylistArtist(track.artist, 28);
     currentArtistEl.title = track.artist;
     artworkGenreEl.textContent = track.genre;
     totalDurationEl.textContent = track.duration || "0:00";
@@ -1511,284 +1881,3 @@ function initWebAudioAndEQ() {
 }
 window.initWebAudio = initWebAudioAndEQ;
 
-// =============================================================
-// SYNTHESIZED SOUND EFFECTS ENGINE (Web Audio API)
-// =============================================================
-function playSFX(type) {
-    if (!audioCtx) {
-        if (typeof initWebAudio === 'function') initWebAudio();
-    }
-    if (!audioCtx) return;
-    if (audioCtx.state === 'suspended') audioCtx.resume();
-
-    const now = audioCtx.currentTime;
-
-    switch (type) {
-        case 'singleclap': {
-            // Loud, punchy single handclap for 1-clap-per-beat BPM sync
-            const burstDuration = 0.05;
-            const buf = audioCtx.createBuffer(1, Math.floor(audioCtx.sampleRate * burstDuration), audioCtx.sampleRate);
-            const d = buf.getChannelData(0);
-            for (let i = 0; i < d.length; i++) {
-                const t = i / d.length;
-                const env = Math.exp(-t * 16);
-                d[i] = (Math.random() * 2 - 1) * env;
-            }
-
-            const src = audioCtx.createBufferSource();
-            src.buffer = buf;
-
-            const flt = audioCtx.createBiquadFilter();
-            flt.type = 'bandpass';
-            flt.frequency.value = 1380;
-            flt.Q.value = 2.2;
-
-            const g = audioCtx.createGain();
-            g.gain.setValueAtTime(0.75, now); // Loud & prominent
-            g.gain.exponentialRampToValueAtTime(0.001, now + burstDuration);
-
-            src.connect(flt);
-            flt.connect(g);
-            g.connect(audioCtx.destination);
-
-            src.start(now);
-            break;
-        }
-
-        case 'cheer': {
-            // Crowd cheer: bandpass filtered noise with pitch modulation & ramp up
-            const duration = 1.5;
-            const bufferSize = audioCtx.sampleRate * duration;
-            const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
-            const data = buffer.getChannelData(0);
-            for (let i = 0; i < bufferSize; i++) {
-                data[i] = (Math.random() * 2 - 1);
-            }
-
-            const noise = audioCtx.createBufferSource();
-            noise.buffer = buffer;
-
-            const filter = audioCtx.createBiquadFilter();
-            filter.type = 'bandpass';
-            filter.frequency.setValueAtTime(800, now);
-            filter.frequency.exponentialRampToValueAtTime(1400, now + 0.4);
-            filter.frequency.linearRampToValueAtTime(900, now + duration);
-            filter.Q.value = 3.0;
-
-            const gain = audioCtx.createGain();
-            gain.gain.setValueAtTime(0.01, now);
-            gain.gain.linearRampToValueAtTime(0.35, now + 0.3);
-            gain.gain.exponentialRampToValueAtTime(0.001, now + duration);
-
-            noise.connect(filter);
-            filter.connect(gain);
-            gain.connect(audioCtx.destination);
-
-            noise.start(now);
-            break;
-        }
-
-        case 'applause': {
-            // Hand claps / Applause: multi-pulse noise bursts over 1.2s
-            const duration = 1.2;
-            const count = 16;
-            for (let c = 0; c < count; c++) {
-                const startTime = now + (c * 0.075) + (Math.random() * 0.03);
-                const burstDuration = 0.05 + Math.random() * 0.03;
-                const buf = audioCtx.createBuffer(1, audioCtx.sampleRate * burstDuration, audioCtx.sampleRate);
-                const d = buf.getChannelData(0);
-                for (let i = 0; i < d.length; i++) {
-                    d[i] = (Math.random() * 2 - 1);
-                }
-
-                const src = audioCtx.createBufferSource();
-                src.buffer = buf;
-
-                const flt = audioCtx.createBiquadFilter();
-                flt.type = 'bandpass';
-                flt.frequency.value = 1200 + Math.random() * 400;
-                flt.Q.value = 2.0;
-
-                const g = audioCtx.createGain();
-                g.gain.setValueAtTime(0.25, startTime);
-                g.gain.exponentialRampToValueAtTime(0.001, startTime + burstDuration);
-
-                src.connect(flt);
-                flt.connect(g);
-                g.connect(audioCtx.destination);
-
-                src.start(startTime);
-            }
-            break;
-        }
-
-        case 'airhorn': {
-            // Classic DJ Air Horn sound: dual sawtooth oscillators with pitch bend
-            const duration = 0.7;
-            const freqs = [466.16, 587.33]; // Bb4 and D5 chord
-
-            freqs.forEach(freq => {
-                const osc = audioCtx.createOscillator();
-                osc.type = 'sawtooth';
-                osc.frequency.setValueAtTime(freq * 1.15, now);
-                osc.frequency.exponentialRampToValueAtTime(freq, now + 0.08);
-
-                const filter = audioCtx.createBiquadFilter();
-                filter.type = 'lowpass';
-                filter.frequency.value = 3500;
-
-                const g = audioCtx.createGain();
-                g.gain.setValueAtTime(0.25, now);
-                g.gain.setValueAtTime(0.25, now + duration - 0.1);
-                g.gain.exponentialRampToValueAtTime(0.001, now + duration);
-
-                osc.connect(filter);
-                filter.connect(g);
-                g.connect(audioCtx.destination);
-
-                osc.start(now);
-                osc.stop(now + duration);
-            });
-            break;
-        }
-
-        case 'subdrop': {
-            // Sub-Bass drop: sine wave sweeping from 160Hz down to 32Hz
-            const duration = 1.0;
-            const osc = audioCtx.createOscillator();
-            osc.type = 'sine';
-            osc.frequency.setValueAtTime(160, now);
-            osc.frequency.exponentialRampToValueAtTime(32, now + duration);
-
-            const g = audioCtx.createGain();
-            g.gain.setValueAtTime(0.4, now);
-            g.gain.exponentialRampToValueAtTime(0.001, now + duration);
-
-            osc.connect(g);
-            g.connect(audioCtx.destination);
-
-            osc.start(now);
-            osc.stop(now + duration);
-            break;
-        }
-    }
-}
-
-// =============================================================
-// AUTO DJ DROP HYPE DETECTION ENGINE
-// =============================================================
-let isAutoHypeEnabled = false;
-let lastHypeTime = 0;
-let bassEnergyHistory = [];
-const HYPE_SFX_OPTIONS = ['cheer', 'applause', 'airhorn', 'subdrop'];
-
-function checkDropAndTriggerSFX() {
-    if (!isAutoHypeEnabled || !analyser || !dataArray || audio.paused) return;
-
-    analyser.getByteFrequencyData(dataArray);
-
-    // Calculate current low-frequency sub-bass energy (bins 0 to 4)
-    let currentBass = 0;
-    for (let i = 0; i < 4; i++) {
-        currentBass += dataArray[i];
-    }
-    currentBass /= 4;
-
-    bassEnergyHistory.push(currentBass);
-    if (bassEnergyHistory.length > 30) bassEnergyHistory.shift();
-
-    const avgBass = bassEnergyHistory.reduce((a, b) => a + b, 0) / bassEnergyHistory.length;
-
-    const now = Date.now();
-    // Cooldown check: minimum 25s - 45s between auto hype triggers (only sometimes!)
-    const cooldownMs = 25000 + Math.random() * 20000;
-
-    // Detect a high drop moment: bass energy suddenly surges > 1.75x rolling average & > 130 magnitude
-    if (currentBass > 130 && currentBass > avgBass * 1.75 && (now - lastHypeTime > cooldownMs)) {
-        lastHypeTime = now;
-        const randomSFX = HYPE_SFX_OPTIONS[Math.floor(Math.random() * HYPE_SFX_OPTIONS.length)];
-        console.log("🔥 Auto DJ Hype Drop Detected! Triggering SFX:", randomSFX);
-        playSFX(randomSFX);
-    }
-}
-
-// Poll audio energy every 250ms during active playback
-setInterval(checkDropAndTriggerSFX, 250);
-
-// Auto Hype Toggle UI
-const btnAutoHype = document.getElementById('btnAutoHype');
-const autoHypeText = document.getElementById('autoHypeText');
-
-if (btnAutoHype) {
-    btnAutoHype.addEventListener('click', () => {
-        isAutoHypeEnabled = !isAutoHypeEnabled;
-        btnAutoHype.classList.toggle('active', isAutoHypeEnabled);
-        if (autoHypeText) {
-            autoHypeText.textContent = isAutoHypeEnabled ? 'Auto Hype: ON 🔥' : 'Auto Hype: OFF';
-        }
-    });
-}
-
-// Manual SFX Chip Clicks
-document.querySelectorAll('.sfx-chip').forEach(chip => {
-    chip.addEventListener('click', () => {
-        const sfx = chip.dataset.sfx;
-        playSFX(sfx);
-    });
-});
-
-// =============================================================
-// FIXED 120 BPM BEAT CLAP ENGINE (500ms per clap)
-// =============================================================
-let isBeatClapEnabled = false;
-const BPM_FIXED = 120;
-const MS_PER_BEAT_120 = 60000 / BPM_FIXED; // exactly 500ms
-let beatClockTimer = null;
-
-function updateBeatClock() {
-    if (beatClockTimer) {
-        clearInterval(beatClockTimer);
-        beatClockTimer = null;
-    }
-    if (!isBeatClapEnabled) return;
-
-    // Fire initial clap immediately if audio is playing
-    if (!audio.paused && audioCtx) {
-        playSFX('singleclap');
-    }
-
-    beatClockTimer = setInterval(() => {
-        if (isBeatClapEnabled && !audio.paused && audioCtx) {
-            playSFX('singleclap');
-        }
-    }, MS_PER_BEAT_120);
-}
-
-// Pause/play listeners so claps stop when paused and resume cleanly
-audio.addEventListener('pause', () => {
-    if (beatClockTimer) {
-        clearInterval(beatClockTimer);
-        beatClockTimer = null;
-    }
-});
-
-audio.addEventListener('play', () => {
-    if (isBeatClapEnabled) {
-        updateBeatClock();
-    }
-});
-
-// Beat Clap Toggle UI
-const btnBeatClap = document.getElementById('btnBeatClap');
-const beatClapText = document.getElementById('beatClapText');
-
-if (btnBeatClap) {
-    btnBeatClap.addEventListener('click', () => {
-        isBeatClapEnabled = !isBeatClapEnabled;
-        btnBeatClap.classList.toggle('active', isBeatClapEnabled);
-        if (beatClapText) {
-            beatClapText.textContent = isBeatClapEnabled ? '👏 Beat Clap: 120 BPM' : '👏 Beat Clap: OFF';
-        }
-        updateBeatClock();
-    });
-}

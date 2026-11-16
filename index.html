@@ -140,27 +140,6 @@
                         <span class="eq-band-label">5s</span>
                     </div>
 
-                    <!-- DJ Performance FX -->
-                    <div class="settings-section-header" style="margin-top:16px;">
-                        <span class="settings-section-title">DJ Performance FX</span>
-                    </div>
-                    <div class="sfx-chips" style="margin-bottom: 8px;">
-                        <button class="auto-hype-toggle" id="btnBeatClap" title="Beat-Synced Claps: OFF">
-                            <span class="hype-status-dot"></span>
-                            <span id="beatClapText">👏 Beat Clap: OFF</span>
-                        </button>
-                        <button class="auto-hype-toggle" id="btnAutoHype" title="Auto Drop Detection Sound FX: OFF">
-                            <span class="hype-status-dot"></span>
-                            <span id="autoHypeText">🔥 Auto Hype: OFF</span>
-                        </button>
-                    </div>
-                    <div class="sfx-chips">
-                        <button class="sfx-chip" data-sfx="singleclap">👏 Clap Beat</button>
-                        <button class="sfx-chip" data-sfx="cheer">🎉 Cheer</button>
-                        <button class="sfx-chip" data-sfx="applause">👏 Applause</button>
-                        <button class="sfx-chip" data-sfx="airhorn">📢 Air Horn</button>
-                        <button class="sfx-chip" data-sfx="subdrop">💥 Sub Drop</button>
-                    </div>
 
                 </div>
             </div>
@@ -279,8 +258,7 @@
                 </div>
 
                 <div class="volume-container">
-                    <button class="btn-ctrl" id="btnMute"
-                        style="width: 32px; height: 32px; border: none; background: transparent;" title="Mute/Unmute">
+                    <button class="btn-ctrl" id="btnMute" title="Mute/Unmute">
                         <svg id="volumeIcon" width="18" height="18" viewBox="0 0 24 24" fill="none"
                             stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                             <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
@@ -353,9 +331,10 @@
 
     </div>
 
-    <!-- Download Options Modal -->
+    <!-- Download Options Bottom Sheet Menu -->
     <div class="modal-backdrop" id="downloadModal" style="display: none;">
         <div class="modal-card">
+            <div class="sheet-grab-bar"></div>
             <div class="modal-header">
                 <div class="modal-title-group">
                     <h3 id="modalTrackTitle">Track Title</h3>
@@ -379,16 +358,24 @@
                     </div>
                 </button>
 
-                <button class="download-option-card spatial-option" id="btnDownload8D">
+                <button class="download-option-card advanced-option" id="btnDownloadAdvanced">
                     <div class="option-icon">
-                        <svg width="22" height="14" viewBox="0 0 800 500" fill="currentColor">
-                            <path fill-rule="evenodd"
-                                d="M0 0 H800 V500 H0 Z M95 85 H185 C270 85 325 150 325 250 C325 350 270 415 185 415 H95 Z M705 85 H615 C530 85 475 150 475 250 C475 350 530 415 615 415 H705 Z" />
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <line x1="4" y1="21" x2="4" y2="14"></line>
+                            <line x1="4" y1="10" x2="4" y2="3"></line>
+                            <line x1="12" y1="21" x2="12" y2="12"></line>
+                            <line x1="12" y1="8" x2="12" y2="3"></line>
+                            <line x1="20" y1="21" x2="20" y2="16"></line>
+                            <line x1="20" y1="12" x2="20" y2="3"></line>
+                            <line x1="1" y1="14" x2="7" y2="14"></line>
+                            <line x1="9" y1="8" x2="15" y2="8"></line>
+                            <line x1="17" y1="16" x2="23" y2="16"></line>
                         </svg>
                     </div>
                     <div class="option-text">
-                        <span class="option-title">8D Dolby Atmos Audio</span>
-                        <span class="option-desc">360° Spatial Sound (Requires processing)</span>
+                        <span class="option-title">Advanced Audio Studio</span>
+                        <span class="option-desc">Customize EQ, Reverb, 8D Spatial & Export</span>
                     </div>
                 </button>
 

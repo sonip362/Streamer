@@ -1,4 +1,4 @@
-const CACHE_NAME = 'streamer-pwa-v1';
+const CACHE_NAME = 'streamer-pwa-v9';
 const ASSETS_TO_CACHE = [
     '/',
     '/index.html',
@@ -6,6 +6,8 @@ const ASSETS_TO_CACHE = [
     '/input.css',
     '/script.js',
     '/manifest.json',
+    '/download.html',
+    '/download.js',
     '/icons/icon-192.png',
     '/icons/icon-512.png'
 ];

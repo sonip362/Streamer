@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Advanced Audio Studio - Streamer</title>
+    <link rel="icon" type="image/png" href="icons/icon-192.png">
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+    <div class="download-page-wrap">
+
+        <!-- Top Navigation Bar -->
+        <header class="download-top-bar">
+            <a href="index.html" class="download-back-btn" id="btnBack">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                    stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="19" y1="12" x2="5" y2="12"></line>
+                    <polyline points="12 19 5 12 12 5"></polyline>
+                </svg>
+                <span>Back to Streamer</span>
+            </a>
+            <h1 class="download-page-title">Advanced Audio Studio</h1>
+        </header>
+
+        <!-- Track Info Card -->
+        <section class="download-card">
+            <div class="download-track-header">
+                <div class="download-track-icon">
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M9 18V5l12-2v13"></path>
+                        <circle cx="6" cy="18" r="3"></circle>
+                        <circle cx="18" cy="16" r="3"></circle>
+                    </svg>
+                </div>
+                <div class="download-track-meta">
+                    <h2 class="download-track-title" id="trackTitle">Loading Track...</h2>
+                    <p class="download-track-artist" id="trackArtist">Streamer Audio</p>
+                </div>
+            </div>
+
+            <!-- Preview Player -->
+            <div class="settings-section" style="margin-top: 4px;">
+                <div class="settings-section-header">
+                    <span class="settings-section-title">Live Audio Preview</span>
+                    <span class="download-preview-time" id="previewTime">0:00 / 0:00</span>
+                </div>
+                <div class="download-preview-controls">
+                    <button class="download-preview-btn" id="btnPreviewPlay" title="Play / Pause Preview">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" id="playIcon">
+                            <polygon points="5 3 19 12 5 21 5 3"></polygon>
+                        </svg>
+                    </button>
+                    <input type="range" class="progress-bar" id="previewScrubber" min="0" max="100" value="0" step="0.1">
+                </div>
+                <div class="volume-container" style="margin-top: 6px;">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                        stroke-linecap="round" stroke-linejoin="round" style="color: var(--text-muted); flex-shrink: 0;">
+                        <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
+                        <path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path>
+                    </svg>
+                    <input type="range" class="volume-slider" id="previewVolume" min="0" max="1" step="0.05" value="1">
+                </div>
+            </div>
+        </section>
+
+        <!-- Equalizer Card -->
+        <section class="download-card">
+            <div class="settings-section-header">
+                <span class="settings-section-title">Parametric Equalizer</span>
+                <span class="settings-val-badge" id="eqPresetBadge">Flat</span>
+            </div>
+
+            <div class="eq-presets">
+                <button class="eq-preset-chip active" data-preset="flat">Flat</button>
+                <button class="eq-preset-chip" data-preset="bass">Bass Boost</button>
+                <button class="eq-preset-chip" data-preset="electronic">Electronic</button>
+                <button class="eq-preset-chip" data-preset="vocal">Vocal</button>
+                <button class="eq-preset-chip" data-preset="rock">Rock</button>
+            </div>
+
+            <div class="eq-bands">
+                <div class="eq-band">
+                    <span class="eq-band-label">60Hz</span>
+                    <input type="range" class="eq-slider" id="eq60" min="-12" max="12" step="0.5" value="0">
+                    <span class="eq-band-val" id="eq60Val">0</span>
+                </div>
+                <div class="eq-band">
+                    <span class="eq-band-label">250Hz</span>
+                    <input type="range" class="eq-slider" id="eq250" min="-12" max="12" step="0.5" value="0">
+                    <span class="eq-band-val" id="eq250Val">0</span>
+                </div>
+                <div class="eq-band">
+                    <span class="eq-band-label">1kHz</span>
+                    <input type="range" class="eq-slider" id="eq1k" min="-12" max="12" step="0.5" value="0">
+                    <span class="eq-band-val" id="eq1kVal">0</span>
+                </div>
+                <div class="eq-band">
+                    <span class="eq-band-label">4kHz</span>
+                    <input type="range" class="eq-slider" id="eq4k" min="-12" max="12" step="0.5" value="0">
+                    <span class="eq-band-val" id="eq4kVal">0</span>
+                </div>
+                <div class="eq-band">
+                    <span class="eq-band-label">16kHz</span>
+                    <input type="range" class="eq-slider" id="eq16k" min="-12" max="12" step="0.5" value="0">
+                    <span class="eq-band-val" id="eq16kVal">0</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- Room Reverb Card -->
+        <section class="download-card">
+            <div class="settings-section-header">
+                <span class="settings-section-title">Room Reverb</span>
+                <span class="settings-val-badge" id="reverbBadge">Off</span>
+            </div>
+            <div class="reverb-chips">
+                <button class="reverb-chip active" data-reverb="none">Off</button>
+                <button class="reverb-chip" data-reverb="room">Room</button>
+                <button class="reverb-chip" data-reverb="studio">Studio</button>
+                <button class="reverb-chip" data-reverb="hall">Hall</button>
+                <button class="reverb-chip" data-reverb="arena">Arena</button>
+            </div>
+        </section>
+
+        <!-- 8D Spatial Audio Card -->
+        <section class="download-card">
+            <div class="settings-section-header">
+                <span class="settings-section-title">8D Spatial Audio</span>
+                <span class="settings-val-badge" id="spatialBadge">Off</span>
+            </div>
+            <div>
+                <button class="btn-8d-toggle" id="btnToggle8D">
+                    <svg width="18" height="12" viewBox="0 0 800 500" fill="currentColor">
+                        <path fill-rule="evenodd"
+                            d="M0 0 H800 V500 H0 Z M95 85 H185 C270 85 325 150 325 250 C325 350 270 415 185 415 H95 Z M705 85 H615 C530 85 475 150 475 250 C475 350 530 415 615 415 H705 Z" />
+                    </svg>
+                    <span id="spatialToggleText">360° Spatial Sound: OFF</span>
+                </button>
+            </div>
+        </section>
+
+        <!-- Playback Speed Card -->
+        <section class="download-card">
+            <div class="settings-section-header">
+                <span class="settings-section-title">Playback Speed</span>
+                <span class="settings-val-badge" id="speedBadge">1.0x</span>
+            </div>
+            <div class="speed-chips">
+                <button class="speed-chip" data-speed="0.5">0.5x</button>
+                <button class="speed-chip" data-speed="0.75">0.75x</button>
+                <button class="speed-chip active" data-speed="1">1x</button>
+                <button class="speed-chip" data-speed="1.25">1.25x</button>
+                <button class="speed-chip" data-speed="1.5">1.5x</button>
+                <button class="speed-chip" data-speed="2">2x</button>
+            </div>
+        </section>
+
+        <!-- Action / Download Card -->
+        <section class="download-card">
+            <button class="btn-download-action" id="btnStartRender">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                    stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                    <polyline points="7 10 12 15 17 10"></polyline>
+                    <line x1="12" y1="15" x2="12" y2="3"></line>
+                </svg>
+                <span>Download Processed Audio</span>
+            </button>
+
+            <div class="download-progress-container" id="progressContainer" style="display: none;">
+                <div class="download-progress-bar">
+                    <div class="download-progress-fill" id="progressFill"></div>
+                </div>
+                <div class="download-status-text" id="statusText">Ready</div>
+            </div>
+        </section>
+
+    </div>
+
+    <!-- Hidden Live Audio Element for Preview -->
+    <audio id="previewAudio" preload="auto" crossorigin="anonymous"></audio>
+
+    <!-- Toast Notification (Desktop) & Sliding Bottom Sheet Menu (Mobile) -->
+    <div class="toast-container" id="toastContainer">
+        <div class="sheet-grab-bar"></div>
+        <div class="toast-content">
+            <div class="toast-spinner" id="toastSpinner"></div>
+            <div class="toast-text-group">
+                <span class="toast-message" id="toastMessage">Processing Audio...</span>
+                <span class="toast-subtext" id="toastSubtext">Rendering audio in browser...</span>
+            </div>
+            <button class="toast-cancel-btn" id="btnToastCancel" title="Cancel Process">Cancel</button>
+        </div>
+    </div>
+
+    <script src="download.js"></script>
+</body>
+
+</html>
