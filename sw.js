@@ -1,4 +1,4 @@
-const CACHE_NAME = 'streamer-pwa-v10';
+const CACHE_NAME = 'streamer-pwa-v19';
 const ASSETS_TO_CACHE = [
     '/',
     '/index.html',
@@ -9,7 +9,8 @@ const ASSETS_TO_CACHE = [
     '/download.html',
     '/download.js',
     '/icons/icon-192.png',
-    '/icons/icon-512.png'
+    '/icons/icon-512.png',
+    '/icons/Material3.png'
 ];
 
 // Install Event - Cache Static Assets

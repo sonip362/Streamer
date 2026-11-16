@@ -48,8 +48,11 @@ const trackArtistEl = document.getElementById('trackArtist');
 const previewAudio = document.getElementById('previewAudio');
 const btnPreviewPlay = document.getElementById('btnPreviewPlay');
 const playIcon = document.getElementById('playIcon');
-const previewScrubber = document.getElementById('previewScrubber');
-const previewTimeEl = document.getElementById('previewTime');
+const previewProgressBar = document.getElementById('previewProgressBar');
+const previewProgressCanvas = document.getElementById('previewProgressCanvas');
+const previewProgressThumb = document.getElementById('previewProgressThumb');
+const previewCurrentTime = document.getElementById('previewCurrentTime');
+const previewTotalDuration = document.getElementById('previewTotalDuration');
 const previewVolume = document.getElementById('previewVolume');
 
 // Settings Elements
@@ -126,6 +129,9 @@ const EQ_PRESET_VALUES = {
 // Update Track Info in UI
 trackTitleEl.textContent = currentTrack.title;
 trackArtistEl.textContent = currentTrack.artist;
+if (currentTrack.duration && currentTrack.duration !== "0:00" && previewTotalDuration) {
+    previewTotalDuration.textContent = currentTrack.duration;
+}
 
 // Set audio stream source
 const directStreamUrl = currentTrack.streamUrl || (currentTrack.file ? JSDELIVR_BASE + encodeURIComponent(currentTrack.file) : '');
@@ -350,6 +356,194 @@ function formatTime(seconds) {
     return `${m}:${s < 10 ? '0' : ''}${s}`;
 }
 
+// =============================================================
+// MATERIAL 3 / ANDROID 13 LIVING WAVY SLIDER (Preview Player)
+// =============================================================
+class WavySlider {
+    constructor({ container, canvas, thumb, onSeek }) {
+        this.container = container;
+        this.canvas = canvas;
+        this.thumb = thumb;
+        this.onSeek = onSeek;
+        this.ctx = canvas ? canvas.getContext('2d') : null;
+
+        this.progress = 0;
+        this.phaseShift = 0;
+        this.currentWaveHeight = 0;
+        this.targetWaveHeight = 8;
+        this.waveLength = 24;
+        this.waveThickness = 3.5;
+        this.speed = 36;
+        this.isSeeking = false;
+        this.isHovered = false;
+        this.isPlaying = false;
+        this.lastTime = performance.now();
+
+        if (this.container && this.canvas && this.ctx) {
+            this.init();
+        }
+    }
+
+    init() {
+        this.resize();
+        window.addEventListener('resize', () => this.resize());
+
+        this.container.addEventListener('pointerdown', (e) => {
+            this.isSeeking = true;
+            this.container.classList.add('seeking');
+            try { this.container.setPointerCapture(e.pointerId); } catch (err) {}
+            this.handlePointer(e);
+        });
+
+        this.container.addEventListener('pointermove', (e) => {
+            if (this.isSeeking) {
+                this.handlePointer(e);
+            }
+        });
+
+        const stopSeeking = (e) => {
+            if (this.isSeeking) {
+                this.isSeeking = false;
+                this.container.classList.remove('seeking');
+                try { this.container.releasePointerCapture(e.pointerId); } catch (err) {}
+            }
+        };
+
+        this.container.addEventListener('pointerup', stopSeeking);
+        this.container.addEventListener('pointercancel', stopSeeking);
+
+        this.container.addEventListener('mouseenter', () => {
+            this.isHovered = true;
+        });
+        this.container.addEventListener('mouseleave', () => {
+            this.isHovered = false;
+        });
+
+        requestAnimationFrame((t) => this.render(t));
+    }
+
+    handlePointer(e) {
+        const rect = this.container.getBoundingClientRect();
+        const clickX = e.clientX - rect.left;
+        const ratio = Math.max(0, Math.min(1, clickX / rect.width));
+        this.progress = ratio;
+        if (this.onSeek) {
+            this.onSeek(ratio);
+        }
+    }
+
+    resize() {
+        if (!this.container || !this.canvas) return;
+        const rect = this.container.getBoundingClientRect();
+        const dpr = window.devicePixelRatio || 1;
+        this.width = rect.width;
+        this.height = rect.height;
+        this.canvas.width = Math.round(rect.width * dpr);
+        this.canvas.height = Math.round(rect.height * dpr);
+        if (this.ctx.resetTransform) {
+            this.ctx.resetTransform();
+        } else {
+            this.ctx.setTransform(1, 0, 0, 1, 0, 0);
+        }
+        this.ctx.scale(dpr, dpr);
+    }
+
+    setProgress(val) {
+        if (!this.isSeeking) {
+            this.progress = Math.max(0, Math.min(1, val));
+        }
+    }
+
+    setPlaying(playing) {
+        this.isPlaying = playing;
+    }
+
+    render(now) {
+        const dt = Math.min(0.1, (now - this.lastTime) / 1000);
+        this.lastTime = now;
+
+        const isExpressive = document.documentElement.getAttribute('data-style') !== 'classic';
+        const targetH = (this.isPlaying && isExpressive) ? (this.isHovered || this.isSeeking ? 10 : 8) : 0;
+        
+        this.currentWaveHeight += (targetH - this.currentWaveHeight) * 0.12;
+
+        if (this.isPlaying && isExpressive) {
+            this.phaseShift = (this.phaseShift + this.speed * dt) % this.waveLength;
+        }
+
+        const width = this.width || this.container.clientWidth;
+        const height = this.height || this.container.clientHeight;
+        const centerY = height / 2;
+        const thumbX = Math.round(this.progress * width);
+
+        this.ctx.clearRect(0, 0, width, height);
+
+        const style = getComputedStyle(document.documentElement);
+        const activeColor = style.getPropertyValue('--cyan-primary').trim() || '#06B6D4';
+        const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+        const inactiveColor = isDark ? '#273549' : '#E2E8F0';
+
+        const strokeW = (this.isHovered || this.isSeeking) ? 4.5 : this.waveThickness;
+
+        const gap = (this.thumb && isExpressive) ? 2 : 0;
+        if (thumbX + gap < width) {
+            this.ctx.beginPath();
+            this.ctx.lineCap = 'round';
+            this.ctx.lineWidth = strokeW;
+            this.ctx.strokeStyle = inactiveColor;
+            this.ctx.moveTo(Math.min(width, thumbX + gap), centerY);
+            this.ctx.lineTo(width, centerY);
+            this.ctx.stroke();
+        }
+
+        if (thumbX > 0) {
+            this.ctx.beginPath();
+            this.ctx.lineCap = 'round';
+            this.ctx.lineJoin = 'round';
+            this.ctx.lineWidth = strokeW;
+            this.ctx.strokeStyle = activeColor;
+
+            if (this.currentWaveHeight > 0.4 && isExpressive) {
+                this.ctx.moveTo(0, centerY);
+                const step = 2;
+                for (let x = 0; x <= thumbX; x += step) {
+                    const radians = ((x - this.phaseShift) / this.waveLength) * Math.PI * 2;
+                    const y = centerY + Math.sin(radians) * (this.currentWaveHeight / 2);
+                    this.ctx.lineTo(x, y);
+                }
+                this.ctx.lineTo(thumbX, centerY);
+            } else {
+                this.ctx.moveTo(0, centerY);
+                this.ctx.lineTo(thumbX, centerY);
+            }
+            this.ctx.stroke();
+        }
+
+        if (this.thumb) {
+            this.thumb.style.left = `${thumbX}px`;
+        }
+
+        requestAnimationFrame((t) => this.render(t));
+    }
+}
+
+let previewWavySlider = null;
+if (previewProgressBar && previewProgressCanvas) {
+    previewWavySlider = new WavySlider({
+        container: previewProgressBar,
+        canvas: previewProgressCanvas,
+        thumb: previewProgressThumb,
+        onSeek: (ratio) => {
+            if (previewAudio.duration) {
+                previewAudio.currentTime = ratio * previewAudio.duration;
+                if (previewCurrentTime) previewCurrentTime.textContent = formatTime(previewAudio.currentTime);
+            }
+        }
+    });
+}
+
+const downloadCard = document.querySelector('.download-card');
+
 btnPreviewPlay.addEventListener('click', async () => {
     initPreviewAudioGraph();
     if (audioCtx.state === 'suspended') {
@@ -359,6 +553,9 @@ btnPreviewPlay.addEventListener('click', async () => {
     if (previewAudio.paused) {
         previewAudio.play().then(() => {
             playIcon.innerHTML = '<rect x="6" y="4" width="4" height="16"></rect><rect x="14" y="4" width="4" height="16"></rect>';
+            btnPreviewPlay.classList.add('playing');
+            if (downloadCard) downloadCard.classList.add('playing');
+            if (previewWavySlider) previewWavySlider.setPlaying(true);
             if (is8DActive) start8DPannerOrbit();
         }).catch(err => {
             console.warn('Playback error:', err);
@@ -366,24 +563,45 @@ btnPreviewPlay.addEventListener('click', async () => {
     } else {
         previewAudio.pause();
         playIcon.innerHTML = '<polygon points="5 3 19 12 5 21 5 3"></polygon>';
+        btnPreviewPlay.classList.remove('playing');
+        if (downloadCard) downloadCard.classList.remove('playing');
+        if (previewWavySlider) previewWavySlider.setPlaying(false);
         stop8DPannerOrbit();
     }
 });
 
-previewAudio.addEventListener('timeupdate', () => {
-    if (!previewAudio.duration) return;
-    const progress = (previewAudio.currentTime / previewAudio.duration) * 100;
-    previewScrubber.value = progress;
-    previewTimeEl.textContent = `${formatTime(previewAudio.currentTime)} / ${formatTime(previewAudio.duration)}`;
+previewAudio.addEventListener('pause', () => {
+    playIcon.innerHTML = '<polygon points="5 3 19 12 5 21 5 3"></polygon>';
+    btnPreviewPlay.classList.remove('playing');
+    if (downloadCard) downloadCard.classList.remove('playing');
+    if (previewWavySlider) previewWavySlider.setPlaying(false);
+    stop8DPannerOrbit();
 });
 
-previewScrubber.addEventListener('input', () => {
+previewAudio.addEventListener('timeupdate', () => {
     if (!previewAudio.duration) return;
-    previewAudio.currentTime = (previewScrubber.value / 100) * previewAudio.duration;
+    if (previewWavySlider && !previewWavySlider.isSeeking) {
+        previewWavySlider.setProgress(previewAudio.currentTime / previewAudio.duration);
+    }
+    if (previewCurrentTime) previewCurrentTime.textContent = formatTime(previewAudio.currentTime);
+    if (previewTotalDuration) previewTotalDuration.textContent = formatTime(previewAudio.duration);
+});
+
+previewAudio.addEventListener('loadedmetadata', () => {
+    if (previewTotalDuration && previewAudio.duration) {
+        previewTotalDuration.textContent = formatTime(previewAudio.duration);
+    }
 });
 
 previewAudio.addEventListener('ended', () => {
     playIcon.innerHTML = '<polygon points="5 3 19 12 5 21 5 3"></polygon>';
+    btnPreviewPlay.classList.remove('playing');
+    if (previewWavySlider) {
+        previewWavySlider.setProgress(0);
+        previewWavySlider.setPlaying(false);
+    }
+    if (previewCurrentTime) previewCurrentTime.textContent = '0:00';
+    if (downloadCard) downloadCard.classList.remove('playing');
     stop8DPannerOrbit();
 });
 
@@ -830,5 +1048,36 @@ btnStartRender.addEventListener('click', async () => {
             clearInterval(heartbeatInterval);
             heartbeatInterval = null;
         }
+    }
+});
+
+// =============================================================
+// THEME & DESIGN STYLE SYNC (Inherit & apply theme from main page)
+// =============================================================
+const THEME_STORAGE_MAIN = 'streamer_main_theme';
+const THEME_STORAGE_ACCENT = 'streamer_accent_theme';
+const THEME_STORAGE_STYLE = 'streamer_design_style';
+
+function applySavedTheme() {
+    try {
+        const savedMain = localStorage.getItem(THEME_STORAGE_MAIN) || 'light';
+        const savedAccent = localStorage.getItem(THEME_STORAGE_ACCENT) || 'cyan';
+        const savedStyle = localStorage.getItem(THEME_STORAGE_STYLE) || 'expressive';
+        document.documentElement.setAttribute('data-theme', savedMain === 'dark' ? 'dark' : 'light');
+        const validAccents = ['cyan', 'blue', 'purple', 'pink', 'amber', 'green'];
+        document.documentElement.setAttribute('data-accent', validAccents.includes(savedAccent) ? savedAccent : 'cyan');
+        document.documentElement.setAttribute('data-style', savedStyle === 'classic' ? 'classic' : 'expressive');
+        if (typeof previewWavySlider !== 'undefined' && previewWavySlider) {
+            previewWavySlider.resize();
+        }
+    } catch (e) {}
+}
+
+applySavedTheme();
+
+// Listen for theme and style changes from main page in real-time
+window.addEventListener('storage', (e) => {
+    if (e.key === THEME_STORAGE_MAIN || e.key === THEME_STORAGE_ACCENT || e.key === THEME_STORAGE_STYLE) {
+        applySavedTheme();
     }
 });

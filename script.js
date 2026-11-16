@@ -125,7 +125,8 @@ const btnAtmos = document.getElementById('btnAtmos');
 const btnMute = document.getElementById('btnMute');
 const volumeSlider = document.getElementById('volumeSlider');
 const progressBar = document.getElementById('progressBar');
-const progressFill = document.getElementById('progressFill');
+const progressCanvas = document.getElementById('progressCanvas');
+const progressThumb = document.getElementById('progressThumb');
 const currentTimeEl = document.getElementById('currentTime');
 const totalDurationEl = document.getElementById('totalDuration');
 const currentTitleEl = document.getElementById('currentTitle');
@@ -663,7 +664,13 @@ function drawLiveWaves() {
 
     ctx.clearRect(0, 0, w, h);
 
-    ctx.fillStyle = '#F8FAF9';
+    const docStyle = getComputedStyle(document.documentElement);
+    const canvasBg = docStyle.getPropertyValue('--bg-secondary').trim() || '#F1F5F9';
+    const strokeLineColor = docStyle.getPropertyValue('--border-color').trim() || '#CBD5E1';
+    const primaryAccent = docStyle.getPropertyValue('--cyan-primary').trim() || '#06B6D4';
+    const lightAccent = docStyle.getPropertyValue('--light-blue').trim() || '#38BDF8';
+
+    ctx.fillStyle = canvasBg;
     ctx.fillRect(0, 0, w, h);
 
     let freqSum = 0;
@@ -682,7 +689,7 @@ function drawLiveWaves() {
 
     ctx.beginPath();
     ctx.lineWidth = 1.5 * dpr;
-    ctx.strokeStyle = '#CBD5E1';
+    ctx.strokeStyle = strokeLineColor;
     ctx.moveTo(0, centerY);
     ctx.lineTo(w, centerY);
     ctx.stroke();
@@ -706,7 +713,7 @@ function drawLiveWaves() {
         const x = gap + i * (barWidth + gap);
         const yTop = centerY - barHeight / 2;
 
-        ctx.fillStyle = (i % 2 === 0) ? '#06B6D4' : '#38BDF8';
+        ctx.fillStyle = (i % 2 === 0) ? primaryAccent : lightAccent;
 
         ctx.beginPath();
         if (ctx.roundRect) {
@@ -721,13 +728,49 @@ function drawLiveWaves() {
 drawLiveWaves();
 
 function generateShuffleOrder() {
-    shuffleOrder = Array.from({ length: playlist.length }, (_, i) => i);
-    for (let i = shuffleOrder.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [shuffleOrder[i], shuffleOrder[j]] = [shuffleOrder[j], shuffleOrder[i]];
+    if (playlist.length === 0) {
+        shuffleOrder = [];
+        shuffleIndex = 0;
+        return;
     }
-    shuffleIndex = shuffleOrder.indexOf(currentIndex);
-    if (shuffleIndex === -1) shuffleIndex = 0;
+
+    const likedIndices = [];
+    const normalIndices = [];
+
+    playlist.forEach((track, i) => {
+        if (isTrackLiked(track)) {
+            likedIndices.push(i);
+        } else {
+            normalIndices.push(i);
+        }
+    });
+
+    // Fisher-Yates shuffle on liked tracks
+    for (let i = likedIndices.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [likedIndices[i], likedIndices[j]] = [likedIndices[j], likedIndices[i]];
+    }
+
+    // Fisher-Yates shuffle on normal tracks
+    for (let i = normalIndices.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [normalIndices[i], normalIndices[j]] = [normalIndices[j], normalIndices[i]];
+    }
+
+    // Liked tracks first, then normal tracks
+    shuffleOrder = [...likedIndices, ...normalIndices];
+
+    // Synchronize shuffleIndex with currentPlayingTrack / currentIndex
+    const currentPos = shuffleOrder.indexOf(currentIndex);
+    if (currentPos !== -1) {
+        if (likedIndices.length > 0 && !isTrackLiked(playlist[currentIndex])) {
+            shuffleIndex = -1;
+        } else {
+            shuffleIndex = currentPos;
+        }
+    } else {
+        shuffleIndex = 0;
+    }
 }
 
 function openDownloadModal(track) {
@@ -1415,6 +1458,10 @@ function loadTrack(index) {
     currentIndex = index;
     const track = playlist[currentIndex];
     currentPlayingTrack = track;
+    if (isShuffle && shuffleOrder.length > 0) {
+        const found = shuffleOrder.indexOf(currentIndex);
+        if (found !== -1) shuffleIndex = found;
+    }
 
     const encodedFile = encodeURIComponent(track.file);
     const jsdelivrUrl = JSDELIVR_BASE + encodedFile;
@@ -1459,7 +1506,7 @@ function loadTrack(index) {
     const artworkContainer = document.querySelector('.artwork-container');
     if (artworkContainer) {
         if (track.coverUrl) {
-            artworkContainer.style.backgroundImage = `linear-gradient(rgba(15,23,42,0.15), rgba(15,23,42,0.35)), url('${track.coverUrl}')`;
+            artworkContainer.style.backgroundImage = `url('${track.coverUrl}')`;
             artworkContainer.style.backgroundSize = 'cover';
             artworkContainer.style.backgroundPosition = 'center';
         } else {
@@ -1473,7 +1520,7 @@ function loadTrack(index) {
     currentArtistEl.title = track.artist;
     artworkGenreEl.textContent = track.genre;
     totalDurationEl.textContent = track.duration || "0:00";
-    progressFill.style.width = "0%";
+    if (mainWavySlider) mainWavySlider.setProgress(0);
     currentTimeEl.textContent = "0:00";
 
     renderPlaylist(searchInput.value);
@@ -1489,6 +1536,7 @@ function playAudio() {
     showSpinner("Connecting audio stream...");
     audio.play().then(() => {
         isPlaying = true;
+        if (mainWavySlider) mainWavySlider.setPlaying(true);
         hideSpinner();
         playIcon.style.display = 'none';
         pauseIcon.style.display = 'block';
@@ -1507,6 +1555,7 @@ function playAudio() {
 function pauseAudio() {
     audio.pause();
     isPlaying = false;
+    if (mainWavySlider) mainWavySlider.setPlaying(false);
     hideSpinner();
     playIcon.style.display = 'block';
     pauseIcon.style.display = 'none';
@@ -1526,7 +1575,21 @@ function nextTrack() {
     if (playlist.length === 0) return;
 
     if (isShuffle) {
-        shuffleIndex = (shuffleIndex + 1) % shuffleOrder.length;
+        if (shuffleOrder.length === 0) generateShuffleOrder();
+        if (shuffleIndex >= shuffleOrder.length - 1) {
+            if (repeatMode === 1) {
+                generateShuffleOrder();
+                shuffleIndex = 0;
+            } else {
+                shuffleIndex = 0;
+                if (repeatMode === 0 && audio.ended) {
+                    pauseAudio();
+                    return;
+                }
+            }
+        } else {
+            shuffleIndex = shuffleIndex + 1;
+        }
         currentIndex = shuffleOrder[shuffleIndex];
     } else {
         if (currentIndex >= playlist.length - 1) {
@@ -1550,6 +1613,7 @@ function prevTrack() {
         audio.currentTime = 0;
     } else {
         if (isShuffle) {
+            if (shuffleOrder.length === 0) generateShuffleOrder();
             shuffleIndex = (shuffleIndex - 1 + shuffleOrder.length) % shuffleOrder.length;
             currentIndex = shuffleOrder[shuffleIndex];
         } else {
@@ -1638,21 +1702,201 @@ window.addEventListener('online', () => {
     if (statusText) statusText.textContent = "GitHub Raw Stream • Connected";
 });
 
+// =============================================================
+// MATERIAL 3 / ANDROID 13 LIVING WAVY SLIDER (Inspired by mahozad/wavy-slider)
+// =============================================================
+class WavySlider {
+    constructor({ container, canvas, thumb, onSeek }) {
+        this.container = container;
+        this.canvas = canvas;
+        this.thumb = thumb;
+        this.onSeek = onSeek;
+        this.ctx = canvas ? canvas.getContext('2d') : null;
+
+        this.progress = 0; // 0 to 1
+        this.phaseShift = 0;
+        this.currentWaveHeight = 0;
+        this.targetWaveHeight = 8; // crest-to-trough 8px (amplitude 4px)
+        this.waveLength = 24; // 24px wavelength (Mahozad & AOSP default)
+        this.waveThickness = 3.5;
+        this.speed = 36; // px per second
+        this.isSeeking = false;
+        this.isHovered = false;
+        this.isPlaying = false;
+        this.lastTime = performance.now();
+
+        if (this.container && this.canvas && this.ctx) {
+            this.init();
+        }
+    }
+
+    init() {
+        this.resize();
+        window.addEventListener('resize', () => this.resize());
+
+        this.container.addEventListener('pointerdown', (e) => {
+            this.isSeeking = true;
+            this.container.classList.add('seeking');
+            try { this.container.setPointerCapture(e.pointerId); } catch (err) {}
+            this.handlePointer(e);
+        });
+
+        this.container.addEventListener('pointermove', (e) => {
+            if (this.isSeeking) {
+                this.handlePointer(e);
+            }
+        });
+
+        const stopSeeking = (e) => {
+            if (this.isSeeking) {
+                this.isSeeking = false;
+                this.container.classList.remove('seeking');
+                try { this.container.releasePointerCapture(e.pointerId); } catch (err) {}
+            }
+        };
+
+        this.container.addEventListener('pointerup', stopSeeking);
+        this.container.addEventListener('pointercancel', stopSeeking);
+
+        this.container.addEventListener('mouseenter', () => {
+            this.isHovered = true;
+        });
+        this.container.addEventListener('mouseleave', () => {
+            this.isHovered = false;
+        });
+
+        requestAnimationFrame((t) => this.render(t));
+    }
+
+    handlePointer(e) {
+        const rect = this.container.getBoundingClientRect();
+        const clickX = e.clientX - rect.left;
+        const ratio = Math.max(0, Math.min(1, clickX / rect.width));
+        this.progress = ratio;
+        if (this.onSeek) {
+            this.onSeek(ratio);
+        }
+    }
+
+    resize() {
+        if (!this.container || !this.canvas) return;
+        const rect = this.container.getBoundingClientRect();
+        const dpr = window.devicePixelRatio || 1;
+        this.width = rect.width;
+        this.height = rect.height;
+        this.canvas.width = Math.round(rect.width * dpr);
+        this.canvas.height = Math.round(rect.height * dpr);
+        if (this.ctx.resetTransform) {
+            this.ctx.resetTransform();
+        } else {
+            this.ctx.setTransform(1, 0, 0, 1, 0, 0);
+        }
+        this.ctx.scale(dpr, dpr);
+    }
+
+    setProgress(val) {
+        if (!this.isSeeking) {
+            this.progress = Math.max(0, Math.min(1, val));
+        }
+    }
+
+    setPlaying(playing) {
+        this.isPlaying = playing;
+    }
+
+    render(now) {
+        const dt = Math.min(0.1, (now - this.lastTime) / 1000);
+        this.lastTime = now;
+
+        const isExpressive = document.documentElement.getAttribute('data-style') !== 'classic';
+        const targetH = (this.isPlaying && isExpressive) ? (this.isHovered || this.isSeeking ? 10 : 8) : 0;
+        
+        // Smoothly interpolate wave height (flattens on pause, springs up on play)
+        this.currentWaveHeight += (targetH - this.currentWaveHeight) * 0.12;
+
+        if (this.isPlaying && isExpressive) {
+            this.phaseShift = (this.phaseShift + this.speed * dt) % this.waveLength;
+        }
+
+        const width = this.width || this.container.clientWidth;
+        const height = this.height || this.container.clientHeight;
+        const centerY = height / 2;
+        const thumbX = Math.round(this.progress * width);
+
+        this.ctx.clearRect(0, 0, width, height);
+
+        const style = getComputedStyle(document.documentElement);
+        const activeColor = style.getPropertyValue('--cyan-primary').trim() || '#06B6D4';
+        const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+        const inactiveColor = isDark ? '#273549' : '#E2E8F0';
+
+        const strokeW = (this.isHovered || this.isSeeking) ? 4.5 : this.waveThickness;
+
+        // 1. Draw Inactive / Remaining Track (Straight line from thumb to end)
+        const gap = (this.thumb && isExpressive) ? 2 : 0;
+        if (thumbX + gap < width) {
+            this.ctx.beginPath();
+            this.ctx.lineCap = 'round';
+            this.ctx.lineWidth = strokeW;
+            this.ctx.strokeStyle = inactiveColor;
+            this.ctx.moveTo(Math.min(width, thumbX + gap), centerY);
+            this.ctx.lineTo(width, centerY);
+            this.ctx.stroke();
+        }
+
+        // 2. Draw Active Track (Wavy Sine Wave or Flat Line)
+        if (thumbX > 0) {
+            this.ctx.beginPath();
+            this.ctx.lineCap = 'round';
+            this.ctx.lineJoin = 'round';
+            this.ctx.lineWidth = strokeW;
+            this.ctx.strokeStyle = activeColor;
+
+            if (this.currentWaveHeight > 0.4 && isExpressive) {
+                this.ctx.moveTo(0, centerY);
+                const step = 2;
+                for (let x = 0; x <= thumbX; x += step) {
+                    const radians = ((x - this.phaseShift) / this.waveLength) * Math.PI * 2;
+                    const y = centerY + Math.sin(radians) * (this.currentWaveHeight / 2);
+                    this.ctx.lineTo(x, y);
+                }
+                this.ctx.lineTo(thumbX, centerY);
+            } else {
+                this.ctx.moveTo(0, centerY);
+                this.ctx.lineTo(thumbX, centerY);
+            }
+            this.ctx.stroke();
+        }
+
+        // 3. Update Thumb Position
+        if (this.thumb) {
+            this.thumb.style.left = `${thumbX}px`;
+        }
+
+        requestAnimationFrame((t) => this.render(t));
+    }
+}
+
+let mainWavySlider = null;
+if (progressBar && progressCanvas) {
+    mainWavySlider = new WavySlider({
+        container: progressBar,
+        canvas: progressCanvas,
+        thumb: progressThumb,
+        onSeek: (ratio) => {
+            if (audio.duration) {
+                audio.currentTime = ratio * audio.duration;
+                currentTimeEl.textContent = formatTime(audio.currentTime);
+            }
+        }
+    });
+}
+
 audio.addEventListener('timeupdate', () => {
-    if (audio.duration) {
-        const percent = (audio.currentTime / audio.duration) * 100;
-        progressFill.style.width = `${percent}%`;
+    if (audio.duration && mainWavySlider && !mainWavySlider.isSeeking) {
+        mainWavySlider.setProgress(audio.currentTime / audio.duration);
         currentTimeEl.textContent = formatTime(audio.currentTime);
         totalDurationEl.textContent = formatTime(audio.duration);
-    }
-});
-
-progressBar.addEventListener('click', (e) => {
-    const rect = progressBar.getBoundingClientRect();
-    const clickX = e.clientX - rect.left;
-    const width = rect.width;
-    if (audio.duration) {
-        audio.currentTime = (clickX / width) * audio.duration;
     }
 });
 
@@ -1700,6 +1944,9 @@ document.addEventListener('keydown', (e) => {
         nextTrack();
     } else if (e.key === 'p' || e.key === 'P') {
         prevTrack();
+    } else if (e.key === 'Escape') {
+        if (typeof closeThemeModal === 'function') closeThemeModal();
+        if (typeof closeDownloadModal === 'function') closeDownloadModal();
     }
 });
 
@@ -1718,6 +1965,178 @@ if ('serviceWorker' in navigator) {
             });
     });
 }
+
+// =============================================================
+// THEME & DESIGN STYLE MANAGER
+// =============================================================
+const THEME_STORAGE_MAIN = 'streamer_main_theme';
+const THEME_STORAGE_ACCENT = 'streamer_accent_theme';
+const THEME_STORAGE_STYLE = 'streamer_design_style';
+
+const btnThemeToggle = document.getElementById('btnThemeToggle');
+const themeModal = document.getElementById('themeModal');
+const btnThemeClose = document.getElementById('btnThemeClose');
+const btnThemeDone = document.getElementById('btnThemeDone');
+
+function getCurrentMainTheme() {
+    return document.documentElement.getAttribute('data-theme') || localStorage.getItem(THEME_STORAGE_MAIN) || 'light';
+}
+
+function getCurrentAccentTheme() {
+    return document.documentElement.getAttribute('data-accent') || localStorage.getItem(THEME_STORAGE_ACCENT) || 'cyan';
+}
+
+function getCurrentDesignStyle() {
+    return document.documentElement.getAttribute('data-style') || localStorage.getItem(THEME_STORAGE_STYLE) || 'expressive';
+}
+
+function setMainTheme(theme, save = true) {
+    if (theme !== 'dark') theme = 'light';
+    document.documentElement.setAttribute('data-theme', theme);
+    if (save) {
+        try { localStorage.setItem(THEME_STORAGE_MAIN, theme); } catch (e) {}
+    }
+    updateThemeUI();
+}
+
+function setAccentTheme(accent, save = true) {
+    const validAccents = ['cyan', 'blue', 'purple', 'pink', 'amber', 'green'];
+    if (!validAccents.includes(accent)) accent = 'cyan';
+    document.documentElement.setAttribute('data-accent', accent);
+    if (save) {
+        try { localStorage.setItem(THEME_STORAGE_ACCENT, accent); } catch (e) {}
+    }
+    updateThemeUI();
+}
+
+function setDesignStyle(style, save = true) {
+    if (style !== 'classic') style = 'expressive';
+    document.documentElement.setAttribute('data-style', style);
+    if (save) {
+        try { localStorage.setItem(THEME_STORAGE_STYLE, style); } catch (e) {}
+    }
+    updateThemeUI();
+    if (typeof mainWavySlider !== 'undefined' && mainWavySlider) {
+        mainWavySlider.resize();
+    }
+}
+
+function updateThemeUI() {
+    const curMain = getCurrentMainTheme();
+    const curAccent = getCurrentAccentTheme();
+    const curStyle = getCurrentDesignStyle();
+
+    document.querySelectorAll('[data-main-theme]').forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.mainTheme === curMain);
+    });
+
+    document.querySelectorAll('[data-accent-theme]').forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.accentTheme === curAccent);
+    });
+
+    const cardM3 = document.getElementById('cardM3Expressive');
+    const chipM3 = document.getElementById('m3CheckChip');
+    const classicBtn = document.querySelector('[data-style-option="classic"]');
+
+    if (cardM3) {
+        cardM3.classList.toggle('active', curStyle === 'expressive');
+    }
+    if (chipM3) {
+        chipM3.style.display = curStyle === 'expressive' ? 'inline-flex' : 'none';
+    }
+    if (classicBtn) {
+        classicBtn.classList.toggle('active', curStyle === 'classic');
+    }
+}
+
+function openThemeModal() {
+    updateThemeUI();
+    if (themeModal) {
+        themeModal.style.display = 'flex';
+        void themeModal.offsetHeight;
+        themeModal.classList.add('show');
+    }
+    if (btnThemeToggle) btnThemeToggle.classList.add('active');
+}
+
+function closeThemeModal() {
+    if (themeModal) {
+        themeModal.classList.remove('show');
+        setTimeout(() => {
+            if (!themeModal.classList.contains('show')) {
+                themeModal.style.display = 'none';
+            }
+        }, 300);
+    }
+    if (btnThemeToggle) btnThemeToggle.classList.remove('active');
+}
+
+function initThemeListeners() {
+    if (btnThemeToggle) {
+        btnThemeToggle.addEventListener('click', () => {
+            if (themeModal && themeModal.classList.contains('show')) {
+                closeThemeModal();
+            } else {
+                openThemeModal();
+            }
+        });
+    }
+
+    if (btnThemeClose) btnThemeClose.addEventListener('click', closeThemeModal);
+    if (btnThemeDone) btnThemeDone.addEventListener('click', closeThemeModal);
+
+    if (themeModal) {
+        themeModal.addEventListener('click', (e) => {
+            if (e.target === themeModal) closeThemeModal();
+        });
+    }
+
+    // Design Style Option Selection (M3 Expressive Card & Classic Button)
+    const cardM3 = document.getElementById('cardM3Expressive');
+    if (cardM3) {
+        cardM3.addEventListener('click', () => {
+            setDesignStyle('expressive', true);
+        });
+        cardM3.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                setDesignStyle('expressive', true);
+            }
+        });
+    }
+
+    document.querySelectorAll('[data-style-option]').forEach(btn => {
+        btn.addEventListener('click', () => {
+            setDesignStyle(btn.dataset.styleOption, true);
+        });
+    });
+
+    document.querySelectorAll('[data-main-theme]').forEach(btn => {
+        btn.addEventListener('click', () => {
+            setMainTheme(btn.dataset.mainTheme, true);
+        });
+    });
+
+    document.querySelectorAll('[data-accent-theme]').forEach(btn => {
+        btn.addEventListener('click', () => {
+            setAccentTheme(btn.dataset.accentTheme, true);
+        });
+    });
+
+    window.addEventListener('storage', (e) => {
+        if (e.key === THEME_STORAGE_MAIN && e.newValue) {
+            setMainTheme(e.newValue, false);
+        } else if (e.key === THEME_STORAGE_ACCENT && e.newValue) {
+            setAccentTheme(e.newValue, false);
+        } else if (e.key === THEME_STORAGE_STYLE && e.newValue) {
+            setDesignStyle(e.newValue, false);
+        }
+    });
+
+    updateThemeUI();
+}
+
+initThemeListeners();
 
 // =============================================================
 // AUDIO SETTINGS PANEL

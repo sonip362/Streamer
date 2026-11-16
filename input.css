@@ -18,7 +18,8 @@
     --color-light-blue-bg: #E0F2FE;
 }
 
-:root {
+:root,
+html[data-theme="light"] {
     --bg-page: #F8FAF9;
     --bg-card: #FFFFFF;
     --bg-secondary: #F1F5F9;
@@ -35,6 +36,173 @@
     --light-blue: #38BDF8;
     --light-blue-bg: #E0F2FE;
     --grey-icon: #64748B;
+    --text-on-accent: #FFFFFF;
+
+    /* Material 3 Expressive Motion & Shape Tokens */
+    --md-sys-motion-spring: linear(
+      0, 0.006, 0.025 2.1%, 0.101 4.8%, 0.533 15.1%, 
+      0.758 21.9%, 0.884 27.2%, 0.963 32.1%, 1.011 37.3%, 
+      1.033 42.5%, 1.036 46.3%, 1.025 51%, 0.993 60.7%, 
+      0.992 65.1%, 1.002 77.5%, 1 100%
+    );
+    --md-sys-motion-overshoot: cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+html[data-theme="dark"] {
+    --bg-page: #0B0F17;
+    --bg-card: #151D2A;
+    --bg-secondary: #1E293B;
+    --bg-active: rgba(6, 182, 212, 0.16);
+    --border-color: #273549;
+    --border-active: rgba(6, 182, 212, 0.4);
+
+    --text-primary: #F8FAFC;
+    --text-secondary: #CBD5E1;
+    --text-muted: #8292A6;
+    --grey-icon: #94A3B8;
+}
+
+/* Accent Themes - Light Mode */
+html[data-accent="cyan"],
+:root:not([data-accent]) {
+    --cyan-primary: #06B6D4;
+    --cyan-hover: #0891B2;
+    --light-blue: #38BDF8;
+    --light-blue-bg: #E0F2FE;
+    --bg-active: #E0F2FE;
+    --border-active: #BAE6FD;
+    --text-on-accent: #FFFFFF;
+}
+
+html[data-accent="purple"] {
+    --cyan-primary: #8B5CF6;
+    --cyan-hover: #7C3AED;
+    --light-blue: #A78BFA;
+    --light-blue-bg: #EDE9FE;
+    --bg-active: #EDE9FE;
+    --border-active: #DDD6FE;
+    --text-on-accent: #FFFFFF;
+}
+
+html[data-accent="pink"] {
+    --cyan-primary: #F43F5E;
+    --cyan-hover: #E11D48;
+    --light-blue: #FB7185;
+    --light-blue-bg: #FFE4E6;
+    --bg-active: #FFE4E6;
+    --border-active: #FECDD3;
+    --text-on-accent: #FFFFFF;
+}
+
+html[data-accent="green"] {
+    --cyan-primary: #10B981;
+    --cyan-hover: #059669;
+    --light-blue: #34D399;
+    --light-blue-bg: #D1FAE5;
+    --bg-active: #D1FAE5;
+    --border-active: #A7F3D0;
+    --text-on-accent: #FFFFFF;
+}
+
+html[data-accent="blue"] {
+    --cyan-primary: #3B82F6;
+    --cyan-hover: #2563EB;
+    --light-blue: #60A5FA;
+    --light-blue-bg: #EFF6FF;
+    --bg-active: #EFF6FF;
+    --border-active: #BFDBFE;
+    --text-on-accent: #FFFFFF;
+}
+
+html[data-accent="amber"] {
+    --cyan-primary: #F59E0B;
+    --cyan-hover: #D97706;
+    --light-blue: #FBBF24;
+    --light-blue-bg: #FEF3C7;
+    --bg-active: #FEF3C7;
+    --border-active: #FDE68A;
+    --text-on-accent: #FFFFFF;
+}
+
+/* Accent Themes - Dark Mode */
+html[data-theme="dark"][data-accent="cyan"],
+html[data-theme="dark"]:not([data-accent]) {
+    --cyan-primary: #06B6D4;
+    --cyan-hover: #22D3EE;
+    --light-blue: #38BDF8;
+    --light-blue-bg: rgba(6, 182, 212, 0.16);
+    --bg-active: rgba(6, 182, 212, 0.16);
+    --border-active: rgba(6, 182, 212, 0.4);
+    --text-on-accent: #FFFFFF;
+}
+
+html[data-theme="dark"][data-accent="purple"] {
+    --cyan-primary: #A78BFA;
+    --cyan-hover: #C4B5FD;
+    --light-blue: #C4B5FD;
+    --light-blue-bg: rgba(139, 92, 246, 0.18);
+    --bg-active: rgba(139, 92, 246, 0.18);
+    --border-active: rgba(167, 139, 250, 0.4);
+    --text-on-accent: #FFFFFF;
+}
+
+html[data-theme="dark"][data-accent="pink"] {
+    --cyan-primary: #FB7185;
+    --cyan-hover: #FDA4AF;
+    --light-blue: #FDA4AF;
+    --light-blue-bg: rgba(244, 63, 94, 0.18);
+    --bg-active: rgba(244, 63, 94, 0.18);
+    --border-active: rgba(251, 113, 133, 0.4);
+    --text-on-accent: #FFFFFF;
+}
+
+html[data-theme="dark"][data-accent="green"] {
+    --cyan-primary: #34D399;
+    --cyan-hover: #6EE7B7;
+    --light-blue: #6EE7B7;
+    --light-blue-bg: rgba(16, 185, 129, 0.18);
+    --bg-active: rgba(16, 185, 129, 0.18);
+    --border-active: rgba(52, 211, 153, 0.4);
+    --text-on-accent: #FFFFFF;
+}
+
+html[data-theme="dark"][data-accent="blue"] {
+    --cyan-primary: #60A5FA;
+    --cyan-hover: #93C5FD;
+    --light-blue: #93C5FD;
+    --light-blue-bg: rgba(59, 130, 246, 0.18);
+    --bg-active: rgba(59, 130, 246, 0.18);
+    --border-active: rgba(96, 165, 250, 0.4);
+    --text-on-accent: #FFFFFF;
+}
+
+html[data-theme="dark"][data-accent="amber"] {
+    --cyan-primary: #FBBF24;
+    --cyan-hover: #FCD34D;
+    --light-blue: #FCD34D;
+    --light-blue-bg: rgba(245, 158, 11, 0.18);
+    --bg-active: rgba(245, 158, 11, 0.18);
+    --border-active: rgba(251, 191, 36, 0.4);
+    --text-on-accent: #FFFFFF;
+}
+
+/* Dark Mode Overrides for shadows and borders */
+html[data-theme="dark"] .header-bar,
+html[data-theme="dark"] .player-card,
+html[data-theme="dark"] .playlist-card,
+html[data-theme="dark"] .settings-panel,
+html[data-theme="dark"] .download-card,
+html[data-theme="dark"] .download-top-bar,
+html[data-theme="dark"] .modal-card {
+    box-shadow: 0 4px 24px rgba(0, 0, 0, 0.4);
+}
+
+html[data-theme="dark"] .modal-card .sheet-grab-bar {
+    background-color: #334155;
+}
+
+html[data-theme="dark"] .search-box input:focus {
+    background-color: var(--bg-card);
 }
 
 html,
@@ -314,21 +482,71 @@ body {
 
 .progress-bar-container {
     width: 100%;
-    height: 8px;
-    background-color: var(--bg-secondary);
-    border-radius: 4px;
-    cursor: pointer;
+    height: 32px;
     position: relative;
-    overflow: hidden;
+    cursor: pointer;
     touch-action: none;
+    user-select: none;
+    display: flex;
+    align-items: center;
+    background: transparent;
 }
 
-.progress-bar-fill {
+.wavy-slider-canvas {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
     height: 100%;
+    pointer-events: none;
+    display: block;
+}
+
+/* Scrubber Handle (Thumb) */
+.progress-scrubber-thumb {
+    position: absolute;
+    top: 50%;
+    left: 0%;
+    transform: translate(-50%, -50%);
+    pointer-events: none;
+    z-index: 5;
+}
+
+/* Material 3 Expressive Scrubber Handle */
+html[data-style="expressive"] .progress-scrubber-thumb,
+html:not([data-style="classic"]) .progress-scrubber-thumb {
+    width: 4px;
+    height: 22px;
     background-color: var(--cyan-primary);
-    width: 0%;
-    border-radius: 4px;
-    transition: width 0.1s linear;
+    border-radius: 9999px;
+    box-shadow: 0 0 0 3px var(--bg-card);
+    transition: width 0.25s var(--md-sys-motion-spring), height 0.25s var(--md-sys-motion-spring), transform 0.25s var(--md-sys-motion-spring);
+}
+
+html[data-style="expressive"] .progress-bar-container:hover .progress-scrubber-thumb,
+html[data-style="expressive"] .progress-bar-container.seeking .progress-scrubber-thumb,
+html:not([data-style="classic"]) .progress-bar-container:hover .progress-scrubber-thumb,
+html:not([data-style="classic"]) .progress-bar-container.seeking .progress-scrubber-thumb {
+    width: 6px;
+    height: 26px;
+}
+
+/* Classic Scrubber Handle: Standard circular dot */
+html[data-style="classic"] .progress-scrubber-thumb {
+    width: 14px !important;
+    height: 14px !important;
+    border-radius: 50% !important;
+    background-color: var(--cyan-primary) !important;
+    border: 2px solid var(--bg-card) !important;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.25) !important;
+    transition: transform 0.15s ease !important;
+}
+
+html[data-style="classic"] .progress-bar-container:hover .progress-scrubber-thumb,
+html[data-style="classic"] .progress-bar-container.seeking .progress-scrubber-thumb {
+    transform: translate(-50%, -50%) scale(1.3) !important;
+    width: 14px !important;
+    height: 14px !important;
 }
 
 /* Controls */
@@ -346,15 +564,17 @@ body {
     color: var(--text-primary);
     width: 42px;
     height: 42px;
-    border-radius: 12px;
     display: flex;
     align-items: center;
     justify-content: center;
     cursor: pointer;
     position: relative;
-    transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease;
-    flex-shrink: 0;
     outline: none;
+    flex-shrink: 0;
+}
+
+.btn-ctrl:active {
+    transform: scale(0.88);
 }
 
 .btn-ctrl:focus {
@@ -405,19 +625,73 @@ body {
     line-height: 1;
 }
 
+/* Base Play Button */
 .btn-play {
-    width: 54px;
-    height: 54px;
-    border-radius: 16px;
     background-color: var(--cyan-primary);
     border: none;
-    color: #FFFFFF;
-    box-shadow: 0 4px 12px rgba(6, 182, 212, 0.3);
+    color: var(--text-on-accent, #FFFFFF);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
 }
 
 .btn-play:hover {
     background-color: var(--cyan-hover);
-    color: #FFFFFF;
+    color: var(--text-on-accent, #FFFFFF);
+}
+
+/* --- Classic Transport Controls --- */
+html[data-style="classic"] .btn-play {
+    width: 48px !important;
+    height: 48px !important;
+    border-radius: 14px !important;
+    transition: transform 0.15s ease, background-color 0.15s ease !important;
+}
+
+html[data-style="classic"] .player-card.playing .btn-play,
+html[data-style="classic"] .preview-card.playing .btn-play,
+html[data-style="classic"] .playing .btn-play {
+    border-radius: 14px !important;
+}
+
+html[data-style="classic"] .btn-ctrl:not(.btn-play) {
+    border-radius: 12px !important;
+    transition: transform 0.15s ease, border-color 0.15s ease, background-color 0.15s ease, color 0.15s ease !important;
+}
+
+/* --- Material 3 Expressive Transport Controls (Shape Morphing) --- */
+html[data-style="expressive"] .btn-play,
+html:not([data-style="classic"]) .btn-play {
+    width: 52px;
+    height: 52px;
+    border-radius: 26px; /* Rounded pill/circle when paused */
+    transition: border-radius 0.45s var(--md-sys-motion-spring), transform 0.35s var(--md-sys-motion-spring), background-color 0.2s ease;
+}
+
+/* Shape Morphing Pattern: Morphs from circle to squircle (14px) when playing */
+html[data-style="expressive"] .player-card.playing .btn-play,
+html[data-style="expressive"] .preview-card.playing .btn-play,
+html[data-style="expressive"] .download-card.playing .btn-play,
+html[data-style="expressive"] .playing .btn-play,
+html:not([data-style="classic"]) .player-card.playing .btn-play,
+html:not([data-style="classic"]) .preview-card.playing .btn-play,
+html:not([data-style="classic"]) .download-card.playing .btn-play,
+html:not([data-style="classic"]) .playing .btn-play {
+    border-radius: 14px;
+}
+
+/* Softer Secondary Action Buttons flanking Play/Pause */
+html[data-style="expressive"] .btn-ctrl:not(.btn-play),
+html:not([data-style="classic"]) .btn-ctrl:not(.btn-play) {
+    border-radius: 9999px;
+    transition: transform 0.35s var(--md-sys-motion-spring), border-color 0.15s ease, background-color 0.15s ease, color 0.15s ease;
+}
+
+html[data-style="expressive"] .btn-ctrl:not(.btn-play):hover:not(.active),
+html:not([data-style="classic"]) .btn-ctrl:not(.btn-play):hover:not(.active) {
+    border-color: var(--cyan-primary);
+    color: var(--cyan-primary);
 }
 
 /* Volume Section */
@@ -425,15 +699,13 @@ body {
     display: flex;
     align-items: center;
     gap: 10px;
-    padding: 8px 12px;
     background-color: var(--bg-secondary);
-    border-radius: 12px;
     border: 1px solid var(--border-color);
 }
 
 #btnMute {
-    width: 32px;
-    height: 32px;
+    width: 28px;
+    height: 28px;
     border: none;
     background: transparent;
     cursor: pointer;
@@ -441,26 +713,153 @@ body {
     align-items: center;
     justify-content: center;
     flex-shrink: 0;
+    color: var(--text-secondary);
+    transition: color 0.15s ease;
+}
+
+#btnMute:hover {
+    color: var(--cyan-primary);
 }
 
 .volume-slider {
     flex: 1;
     -webkit-appearance: none;
     appearance: none;
-    height: 6px;
-    background: var(--border-color);
-    border-radius: 3px;
+    background: transparent;
+    cursor: pointer;
+    margin: 0;
     outline: none;
 }
 
-.volume-slider::-webkit-slider-thumb {
+/* Classic Volume Slider */
+html[data-style="classic"] .volume-container {
+    border-radius: 12px !important;
+    padding: 4px 12px !important;
+}
+
+html[data-style="classic"] .volume-slider {
+    height: 24px;
+}
+
+html[data-style="classic"] .volume-slider::-webkit-slider-runnable-track {
+    width: 100%;
+    height: 6px !important;
+    background-color: var(--border-color) !important;
+    border-radius: 3px !important;
+    border: none !important;
+}
+
+html[data-style="classic"] .volume-slider::-moz-range-track {
+    width: 100%;
+    height: 6px !important;
+    background-color: var(--border-color) !important;
+    border-radius: 3px !important;
+    border: none !important;
+}
+
+html[data-style="classic"] .volume-slider::-webkit-slider-thumb {
     -webkit-appearance: none;
     appearance: none;
-    width: 18px;
-    height: 18px;
-    border-radius: 50%;
-    background: var(--cyan-primary);
-    cursor: pointer;
+    width: 16px !important;
+    height: 16px !important;
+    background-color: var(--cyan-primary) !important;
+    border: 2px solid var(--bg-card) !important;
+    border-radius: 50% !important;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.25) !important;
+    margin-top: -5px !important;
+    transition: transform 0.15s ease !important;
+}
+
+html[data-style="classic"] .volume-slider::-moz-range-thumb {
+    width: 16px !important;
+    height: 16px !important;
+    background-color: var(--cyan-primary) !important;
+    border: 2px solid var(--bg-card) !important;
+    border-radius: 50% !important;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.25) !important;
+    transition: transform 0.15s ease !important;
+}
+
+html[data-style="classic"] .volume-slider:active::-webkit-slider-thumb {
+    transform: scale(1.2) !important;
+    width: 16px !important;
+    height: 16px !important;
+    margin-top: -5px !important;
+}
+
+html[data-style="classic"] .volume-slider:active::-moz-range-thumb {
+    transform: scale(1.2) !important;
+    width: 16px !important;
+    height: 16px !important;
+}
+
+/* Material 3 Expressive Volume Slider */
+html[data-style="expressive"] .volume-container,
+html:not([data-style="classic"]) .volume-container {
+    border-radius: 9999px;
+    padding: 6px 14px;
+}
+
+html[data-style="expressive"] .volume-slider,
+html:not([data-style="classic"]) .volume-slider {
+    height: 28px;
+}
+
+html[data-style="expressive"] .volume-slider::-webkit-slider-runnable-track,
+html:not([data-style="classic"]) .volume-slider::-webkit-slider-runnable-track {
+    width: 100%;
+    height: 12px;
+    background-color: var(--bg-card);
+    border-radius: 9999px;
+    border: 1px solid var(--border-color);
+    transition: background-color 0.2s ease, border-color 0.2s ease;
+}
+
+html[data-style="expressive"] .volume-slider::-moz-range-track,
+html:not([data-style="classic"]) .volume-slider::-moz-range-track {
+    width: 100%;
+    height: 12px;
+    background-color: var(--bg-card);
+    border-radius: 9999px;
+    border: 1px solid var(--border-color);
+}
+
+html[data-style="expressive"] .volume-slider::-webkit-slider-thumb,
+html:not([data-style="classic"]) .volume-slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 4px;
+    height: 22px;
+    background-color: var(--cyan-primary);
+    border-radius: 9999px;
+    margin-top: -5px;
+    box-shadow: 0 0 0 3px var(--bg-secondary);
+    border: none;
+    transition: transform 0.2s var(--md-sys-motion-spring), width 0.2s ease, background-color 0.15s ease;
+}
+
+html[data-style="expressive"] .volume-slider::-moz-range-thumb,
+html:not([data-style="classic"]) .volume-slider::-moz-range-thumb {
+    width: 4px;
+    height: 22px;
+    background-color: var(--cyan-primary);
+    border: 3px solid var(--bg-secondary);
+    border-radius: 9999px;
+    box-sizing: content-box;
+    transition: transform 0.2s var(--md-sys-motion-spring), width 0.2s ease;
+}
+
+html[data-style="expressive"] .volume-slider:active::-webkit-slider-thumb,
+html:not([data-style="classic"]) .volume-slider:active::-webkit-slider-thumb {
+    width: 6px;
+    height: 24px;
+    margin-top: -6px;
+}
+
+html[data-style="expressive"] .volume-slider:active::-moz-range-thumb,
+html:not([data-style="classic"]) .volume-slider:active::-moz-range-thumb {
+    width: 6px;
+    height: 24px;
 }
 
 /* Playlist Panel (Right Column) */
@@ -532,40 +931,78 @@ body {
     color: var(--cyan-hover);
 }
 
-/* Playlist Source Filter Tabs */
+/* M3 Expressive Filter Chips */
 .playlist-tabs {
     display: flex;
-    flex-wrap: wrap;
     align-items: center;
-    gap: 6px;
+    gap: 8px;
     width: 100%;
+    overflow-x: auto;
+    scrollbar-width: none;
+    padding-bottom: 2px;
+}
+
+.playlist-tabs::-webkit-scrollbar {
+    display: none;
 }
 
 .tab-chip {
-    flex: 0 1 auto;
-    background-color: var(--bg-secondary);
-    border: 1px solid var(--border-color);
-    color: var(--text-secondary);
-    font-size: 0.76rem;
+    height: 32px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    font-size: 0.8rem;
     font-weight: 600;
-    padding: 5px 11px;
-    border-radius: 18px;
     cursor: pointer;
     white-space: nowrap;
-    transition: all 0.15s ease;
+    outline: none;
+    flex-shrink: 0;
+    transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease, transform 0.25s var(--md-sys-motion-spring);
 }
 
-.tab-chip:hover {
-    background-color: var(--light-blue-bg);
-    border-color: var(--border-active);
-    color: var(--cyan-primary);
-}
-
-.tab-chip.active {
-    background-color: var(--cyan-primary);
+.tab-chip:hover:not(.active) {
     border-color: var(--cyan-primary);
-    color: #FFFFFF;
-    box-shadow: 0 2px 8px rgba(6, 182, 212, 0.25);
+    color: var(--text-primary);
+    background-color: var(--bg-secondary);
+}
+
+.tab-chip:active {
+    transform: scale(0.92);
+}
+
+/* Classic Filter Chips */
+html[data-style="classic"] .tab-chip {
+    border-radius: 18px !important;
+    padding: 0 14px !important;
+    border: 1px solid var(--border-color) !important;
+    background-color: var(--bg-card) !important;
+    color: var(--text-secondary) !important;
+}
+
+html[data-style="classic"] .tab-chip.active {
+    background-color: var(--cyan-primary) !important;
+    color: #FFFFFF !important;
+    border-color: var(--cyan-primary) !important;
+    font-weight: 700 !important;
+}
+
+/* Material 3 Expressive Filter Chips (8px corner radius, outline unselected, soft tonal fill active) */
+html[data-style="expressive"] .tab-chip,
+html:not([data-style="classic"]) .tab-chip {
+    border-radius: 8px; /* M3 rounded-lg */
+    padding: 0 12px;
+    border: 1px solid var(--border-color);
+    background-color: var(--bg-card);
+    color: var(--text-secondary);
+}
+
+html[data-style="expressive"] .tab-chip.active,
+html:not([data-style="classic"]) .tab-chip.active {
+    background-color: var(--light-blue-bg);
+    color: var(--cyan-primary);
+    border-color: transparent;
+    font-weight: 700;
 }
 
 /* Load More Button Container - Fixed Height */
@@ -586,7 +1023,7 @@ body {
     font-size: 0.82rem;
     font-weight: 700;
     padding: 8px 20px;
-    border-radius: 20px;
+    border-radius: 9999px;
     cursor: pointer;
     transition: all 0.15s ease;
 }
@@ -594,40 +1031,77 @@ body {
 .btn-load-more:hover {
     background-color: var(--light-blue-bg);
     border-color: var(--cyan-primary);
-    box-shadow: 0 3px 12px rgba(6, 182, 212, 0.2);
 }
 
-/* Search Filter */
+/* Search Bar Container & Input */
 .search-box {
     position: relative;
     width: 100%;
-    max-width: 240px;
 }
 
 .search-box input {
     width: 100%;
-    padding: 8px 12px 8px 34px;
-    border-radius: 10px;
-    border: 1px solid var(--border-color);
-    background-color: var(--bg-secondary);
     color: var(--text-primary);
-    font-size: 0.85rem;
+    font-size: 0.88rem;
     outline: none;
-    transition: border-color 0.2s, background-color 0.2s;
+    transition: border-color 0.2s ease, background-color 0.2s ease, box-shadow 0.2s ease;
 }
 
 .search-box input:focus {
     border-color: var(--cyan-primary);
-    background-color: #FFFFFF;
+    background-color: var(--bg-card);
+    box-shadow: 0 0 0 3px var(--light-blue-bg);
 }
 
 .search-icon {
     position: absolute;
-    left: 10px;
     top: 50%;
     transform: translateY(-50%);
     color: var(--text-muted);
     pointer-events: none;
+}
+
+/* Classic Search Bar */
+html[data-style="classic"] .search-box {
+    max-width: 240px;
+    height: 38px;
+}
+
+html[data-style="classic"] .search-box input {
+    height: 38px !important;
+    border-radius: 10px !important;
+    padding: 0 14px 0 36px !important;
+    background-color: var(--bg-card) !important;
+    border: 1px solid var(--border-color) !important;
+}
+
+html[data-style="classic"] .search-icon {
+    left: 12px !important;
+    width: 14px !important;
+    height: 14px !important;
+}
+
+/* Material 3 Expressive Docked Search Bar */
+html[data-style="expressive"] .search-box,
+html:not([data-style="classic"]) .search-box {
+    max-width: 280px;
+    height: 48px;
+}
+
+html[data-style="expressive"] .search-box input,
+html:not([data-style="classic"]) .search-box input {
+    height: 48px;
+    padding: 0 16px 0 44px;
+    border-radius: 9999px; /* M3 Docked Search Bar */
+    border: 1px solid var(--border-color);
+    background-color: var(--bg-secondary);
+}
+
+html[data-style="expressive"] .search-icon,
+html:not([data-style="classic"]) .search-icon {
+    left: 16px;
+    width: 16px;
+    height: 16px;
 }
 
 /* Playlist Items List - Strictly Fixed Height Container */
@@ -659,22 +1133,32 @@ body {
     border-radius: 4px;
 }
 
+/* Playlist List Items */
 .playlist-item {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 12px 16px;
     background-color: var(--bg-secondary);
     border: 1px solid transparent;
-    border-radius: 14px;
     cursor: pointer;
-    transition: background-color 0.15s, border-color 0.15s;
+    transition: background-color 0.15s ease, border-color 0.15s ease, transform 0.2s var(--md-sys-motion-spring);
     width: 100%;
     max-width: 100%;
     min-width: 0;
-    min-height: 52px;
+    min-height: 54px;
     flex-shrink: 0;
     box-sizing: border-box;
+}
+
+html[data-style="classic"] .playlist-item {
+    border-radius: 12px !important;
+    padding: 12px 14px !important;
+}
+
+html[data-style="expressive"] .playlist-item,
+html:not([data-style="classic"]) .playlist-item {
+    border-radius: 16px; /* M3 Expressive pill item */
+    padding: 10px 16px; /* 16px horizontal padding */
 }
 
 .playlist-item:hover {
@@ -682,6 +1166,7 @@ body {
     border-color: var(--border-active);
 }
 
+/* Active Tonal Pill Highlight (secondary-container) */
 .playlist-item.active {
     background-color: var(--light-blue-bg);
     border-color: var(--cyan-primary);
@@ -1066,6 +1551,289 @@ body {
     color: var(--text-primary);
 }
 
+/* Theme Bottom Sheet Modal */
+.theme-modal-card {
+    max-width: 460px;
+}
+
+.theme-modal-body {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    padding: 2px 0 8px 0;
+}
+
+.theme-section {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.theme-section-label {
+    font-size: 0.76rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--text-muted);
+}
+
+.theme-options-grid {
+    display: grid;
+    gap: 8px;
+}
+
+.theme-main-grid {
+    grid-template-columns: repeat(2, 1fr);
+}
+
+.theme-accent-grid {
+    grid-template-columns: repeat(3, 1fr);
+}
+
+@media (max-width: 480px) {
+    .theme-accent-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+.theme-option-btn {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 9px;
+    padding: 10px 14px;
+    border-radius: 12px;
+    border: 1.5px solid var(--border-color);
+    background-color: var(--bg-secondary);
+    color: var(--text-primary);
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: border-color 0.15s, background-color 0.15s, color 0.15s;
+}
+
+.theme-option-btn:hover {
+    border-color: var(--cyan-primary);
+    background-color: var(--light-blue-bg);
+    color: var(--cyan-primary);
+}
+
+.theme-option-btn.active {
+    border-color: var(--cyan-primary);
+    background-color: var(--light-blue-bg);
+    color: var(--cyan-primary);
+    font-weight: 700;
+}
+
+.theme-preview-dot {
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    flex-shrink: 0;
+    border: 1px solid rgba(0, 0, 0, 0.15);
+}
+
+.theme-preview-dot.light-dot {
+    background-color: #FFFFFF;
+    border: 1.5px solid #CBD5E1;
+}
+
+.theme-preview-dot.dark-dot {
+    background-color: #0F172A;
+    border: 1.5px solid #475569;
+}
+
+/* Material 3 Expressive Showcase Card & Style Selection */
+.m3-showcase-container {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    width: 100%;
+}
+
+.m3-expressive-card {
+    border-radius: 24px;
+    border: 2px solid var(--border-color);
+    background-color: var(--bg-card);
+    cursor: pointer;
+    overflow: hidden;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    text-align: left;
+    outline: none;
+    transition: transform 0.35s var(--md-sys-motion-spring), border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.m3-expressive-card:hover {
+    border-color: var(--cyan-primary);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+}
+
+.m3-expressive-card:focus-visible {
+    outline: 2px solid var(--cyan-primary);
+    outline-offset: 2px;
+}
+
+.m3-expressive-card.active {
+    border-color: var(--cyan-primary);
+    box-shadow: 0 0 0 1px var(--cyan-primary);
+}
+
+/* 3/4th Media Section */
+.m3-card-media {
+    position: relative;
+    width: 100%;
+    height: 180px;
+    background-color: #2E1065;
+    overflow: hidden;
+}
+
+.m3-media-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    transition: transform 0.5s var(--md-sys-motion-spring);
+}
+
+.m3-expressive-card:hover .m3-media-img {
+    transform: scale(1.03);
+}
+
+.m3-badge-pill {
+    position: absolute;
+    top: 12px;
+    left: 12px;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 10px;
+    border-radius: 9999px;
+    background-color: rgba(15, 23, 42, 0.85);
+    backdrop-filter: blur(8px);
+    color: #FFFFFF;
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+}
+
+.m3-badge-pill svg {
+    color: #FCD34D;
+}
+
+/* 1/4th Content & Credits Section */
+.m3-card-body {
+    padding: 14px 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    background-color: var(--bg-card);
+}
+
+.m3-title-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+}
+
+.m3-title {
+    font-size: 0.98rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin: 0;
+    letter-spacing: -0.01em;
+}
+
+.m3-check-chip {
+    display: none;
+    align-items: center;
+    padding: 2px 8px;
+    border-radius: 9999px;
+    background-color: var(--cyan-primary);
+    color: var(--text-on-accent);
+    font-size: 0.68rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+}
+
+.m3-expressive-card.active .m3-check-chip {
+    display: inline-flex;
+}
+
+.m3-desc {
+    font-size: 0.78rem;
+    color: var(--text-secondary);
+    line-height: 1.4;
+    margin: 0;
+}
+
+.m3-credits {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.7rem;
+    color: var(--text-muted);
+    font-weight: 600;
+    margin-top: 2px;
+}
+
+.m3-credits svg {
+    color: var(--cyan-primary);
+    flex-shrink: 0;
+}
+
+/* Classic Style Option Button */
+.style-classic-btn {
+    width: 100%;
+}
+
+.classic-dot {
+    background-color: #94A3B8;
+    border: 1.5px solid #64748B;
+}
+
+/* Spring Tactile Feedback for Buttons & Controls */
+.theme-option-btn,
+.modal-cancel-btn {
+    transition: transform 0.35s var(--md-sys-motion-spring), border-color 0.15s, background-color 0.15s, color 0.15s;
+}
+
+.theme-option-btn:active,
+.modal-cancel-btn:active,
+.m3-expressive-card:active {
+    transform: scale(0.94);
+}
+
+/* Card & Container Shape Tokens: Classic vs Expressive */
+html[data-style="classic"] .player-card,
+html[data-style="classic"] .playlist-card,
+html[data-style="classic"] .download-card,
+html[data-style="classic"] .download-top-bar,
+html[data-style="classic"] .studio-card,
+html[data-style="classic"] .theme-modal-card {
+    border-radius: 16px !important;
+}
+
+html[data-style="expressive"] .player-card,
+html[data-style="expressive"] .playlist-card,
+html[data-style="expressive"] .download-card,
+html[data-style="expressive"] .download-top-bar,
+html[data-style="expressive"] .studio-card,
+html[data-style="expressive"] .theme-modal-card,
+html:not([data-style="classic"]) .player-card,
+html:not([data-style="classic"]) .playlist-card,
+html:not([data-style="classic"]) .download-card,
+html:not([data-style="classic"]) .download-top-bar,
+html:not([data-style="classic"]) .studio-card,
+html:not([data-style="classic"]) .theme-modal-card {
+    border-radius: 28px;
+}
+
 /* Toast Notification (Desktop) & Mobile Sliding Bottom Sheet Menu */
 .toast-container {
     position: fixed;
@@ -1237,34 +2005,88 @@ body {
     transform: rotate(45deg);
 }
 
-.settings-panel {
-    background-color: var(--bg-card);
+.btn-theme-toggle {
+    background-color: var(--bg-secondary);
     border: 1px solid var(--border-color);
-    border-radius: 20px;
-    padding: 0 28px;
-    box-shadow: 0 4px 16px rgba(15, 23, 42, 0.04);
+    color: var(--text-primary);
+    width: 38px;
+    height: 38px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    flex-shrink: 0;
+}
+
+.btn-theme-toggle:hover {
+    background-color: var(--light-blue-bg);
+    border-color: var(--cyan-primary);
+    color: var(--cyan-primary);
+}
+
+.btn-theme-toggle.active {
+    background-color: var(--cyan-primary);
+    border-color: var(--cyan-primary);
+    color: var(--text-on-accent, #FFFFFF);
+}
+
+/* Audio Settings Panel: Surface Containers (Classic vs Expressive) */
+.settings-panel {
+    border: 1px solid var(--border-color);
+    padding: 0 24px;
+    box-shadow: 0 4px 20px rgba(15, 23, 42, 0.04);
     overflow: hidden;
     max-height: 0;
     opacity: 0;
     transition: max-height 0.45s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.3s ease, padding 0.35s ease;
 }
 
+html[data-style="classic"] .settings-panel {
+    background-color: var(--bg-card);
+    border-radius: 16px !important;
+}
+
+html[data-style="expressive"] .settings-panel,
+html:not([data-style="classic"]) .settings-panel {
+    background-color: var(--bg-secondary); /* surface-container-low */
+    border-radius: 28px;
+}
+
 .settings-panel.open {
-    max-height: 650px;
+    max-height: 700px;
     opacity: 1;
-    padding: 24px 28px;
+    padding: 24px;
 }
 
 .settings-grid {
     display: grid;
     grid-template-columns: 1fr 1fr;
-    gap: 28px;
+    gap: 16px;
 }
 
+/* Settings Sub-section Cards */
 .settings-section {
     display: flex;
     flex-direction: column;
-    gap: 10px;
+    gap: 14px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
+}
+
+html[data-style="classic"] .settings-section {
+    background-color: transparent;
+    border: 1px solid var(--border-color);
+    border-radius: 12px !important;
+    padding: 14px 16px;
+}
+
+html[data-style="expressive"] .settings-section,
+html:not([data-style="classic"]) .settings-section {
+    background-color: var(--bg-card); /* surface-container-high */
+    border: 1px solid var(--border-color);
+    border-radius: 20px;
+    padding: 18px 20px;
 }
 
 .settings-section-header {
@@ -1297,7 +2119,7 @@ body {
 .eq-bands {
     display: flex;
     flex-direction: column;
-    gap: 6px;
+    gap: 8px;
 }
 
 .eq-band {
@@ -1307,122 +2129,306 @@ body {
 }
 
 .eq-band-label {
-    font-size: 0.72rem;
+    font-size: 0.74rem;
     font-weight: 600;
     color: var(--text-muted);
-    width: 36px;
+    width: 38px;
     flex-shrink: 0;
     text-align: right;
 }
 
 .eq-band-val {
-    font-size: 0.72rem;
+    font-size: 0.74rem;
     font-weight: 700;
     color: var(--cyan-hover);
-    width: 26px;
+    width: 28px;
     text-align: left;
     flex-shrink: 0;
 }
 
+/* Equalizer Sliders */
 .eq-slider {
     flex: 1;
     -webkit-appearance: none;
     appearance: none;
-    height: 5px;
-    background: var(--border-color);
-    border-radius: 3px;
+    background: transparent;
+    cursor: pointer;
+    margin: 0;
     outline: none;
-    transition: background 0.2s;
 }
 
-.eq-slider::-webkit-slider-thumb {
+/* Classic EQ Slider */
+html[data-style="classic"] .eq-slider {
+    height: 24px;
+}
+
+html[data-style="classic"] .eq-slider::-webkit-slider-runnable-track {
+    width: 100%;
+    height: 6px !important;
+    background-color: var(--border-color) !important;
+    border-radius: 3px !important;
+    border: none !important;
+}
+
+html[data-style="classic"] .eq-slider::-moz-range-track {
+    width: 100%;
+    height: 6px !important;
+    background-color: var(--border-color) !important;
+    border-radius: 3px !important;
+    border: none !important;
+}
+
+html[data-style="classic"] .eq-slider::-webkit-slider-thumb {
     -webkit-appearance: none;
     appearance: none;
-    width: 16px;
-    height: 16px;
-    border-radius: 50%;
-    background: var(--cyan-primary);
-    cursor: pointer;
-    border: 2px solid var(--bg-card);
-    box-shadow: 0 1px 4px rgba(6, 182, 212, 0.4);
-    transition: transform 0.15s;
+    width: 16px !important;
+    height: 16px !important;
+    background-color: var(--cyan-primary) !important;
+    border: 2px solid var(--bg-card) !important;
+    border-radius: 50% !important;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.25) !important;
+    margin-top: -5px !important;
+    transition: transform 0.15s ease !important;
 }
 
-.eq-slider::-webkit-slider-thumb:hover {
-    transform: scale(1.2);
+html[data-style="classic"] .eq-slider::-moz-range-thumb {
+    width: 16px !important;
+    height: 16px !important;
+    background-color: var(--cyan-primary) !important;
+    border: 2px solid var(--bg-card) !important;
+    border-radius: 50% !important;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.25) !important;
+    transition: transform 0.15s ease !important;
 }
 
-/* EQ Presets */
-.eq-presets {
-    display: flex;
-    gap: 5px;
-    flex-wrap: wrap;
+html[data-style="classic"] .eq-slider:active::-webkit-slider-thumb {
+    transform: scale(1.2) !important;
+    width: 16px !important;
+    height: 16px !important;
+    margin-top: -5px !important;
 }
 
-.eq-preset-chip {
-    font-size: 0.7rem;
-    font-weight: 700;
-    padding: 3px 9px;
-    border-radius: 10px;
-    border: 1px solid var(--border-color);
+html[data-style="classic"] .eq-slider:active::-moz-range-thumb {
+    transform: scale(1.2) !important;
+    width: 16px !important;
+    height: 16px !important;
+}
+
+/* Material 3 Expressive EQ Slider (Thick Pill Track & Tall Narrow Vertical Bar Handle) */
+html[data-style="expressive"] .eq-slider,
+html:not([data-style="classic"]) .eq-slider {
+    height: 30px;
+}
+
+html[data-style="expressive"] .eq-slider::-webkit-slider-runnable-track,
+html:not([data-style="classic"]) .eq-slider::-webkit-slider-runnable-track {
+    width: 100%;
+    height: 14px;
     background-color: var(--bg-secondary);
-    color: var(--text-secondary);
-    cursor: pointer;
-    transition: all 0.15s;
-    white-space: nowrap;
-}
-
-.eq-preset-chip:hover {
-    border-color: var(--cyan-primary);
-    color: var(--cyan-primary);
-    background-color: var(--light-blue-bg);
-}
-
-.eq-preset-chip.active {
-    background-color: var(--cyan-primary);
-    border-color: var(--cyan-primary);
-    color: #fff;
-}
-
-/* Speed Chips */
-.speed-chips,
-.reverb-chips {
-    display: flex;
-    gap: 6px;
-    flex-wrap: wrap;
-}
-
-.speed-chip,
-.reverb-chip {
-    font-size: 0.74rem;
-    font-weight: 700;
-    padding: 5px 11px;
-    border-radius: 10px;
+    border-radius: 9999px;
     border: 1px solid var(--border-color);
+    transition: background-color 0.2s ease, border-color 0.2s ease;
+}
+
+html[data-style="expressive"] .eq-slider::-moz-range-track,
+html:not([data-style="classic"]) .eq-slider::-moz-range-track {
+    width: 100%;
+    height: 14px;
     background-color: var(--bg-secondary);
-    color: var(--text-secondary);
-    cursor: pointer;
-    transition: all 0.15s;
-    white-space: nowrap;
+    border-radius: 9999px;
+    border: 1px solid var(--border-color);
 }
 
-.speed-chip:hover,
-.reverb-chip:hover {
-    border-color: var(--cyan-primary);
-    color: var(--cyan-primary);
-    background-color: var(--light-blue-bg);
-}
-
-.speed-chip.active,
-.reverb-chip.active {
+html[data-style="expressive"] .eq-slider::-webkit-slider-thumb,
+html:not([data-style="classic"]) .eq-slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 4px;
+    height: 24px;
     background-color: var(--cyan-primary);
-    border-color: var(--cyan-primary);
-    color: #fff;
-    box-shadow: 0 2px 8px rgba(6, 182, 212, 0.25);
+    border-radius: 9999px;
+    margin-top: -5px; /* (14px track - 24px thumb) / 2 = -5px */
+    box-shadow: 0 0 0 3px var(--bg-card);
+    border: none;
+    transition: transform 0.2s var(--md-sys-motion-spring), width 0.2s ease, background-color 0.15s ease;
+}
+
+html[data-style="expressive"] .eq-slider::-moz-range-thumb,
+html:not([data-style="classic"]) .eq-slider::-moz-range-thumb {
+    width: 4px;
+    height: 24px;
+    background-color: var(--cyan-primary);
+    border: 3px solid var(--bg-card);
+    border-radius: 9999px;
+    box-sizing: content-box;
+    transition: transform 0.2s var(--md-sys-motion-spring), width 0.2s ease;
+}
+
+html[data-style="expressive"] .eq-slider:active::-webkit-slider-thumb,
+html:not([data-style="classic"]) .eq-slider:active::-webkit-slider-thumb {
+    width: 6px;
+    height: 26px;
+    margin-top: -6px;
+}
+
+html[data-style="expressive"] .eq-slider:active::-moz-range-thumb,
+html:not([data-style="classic"]) .eq-slider:active::-moz-range-thumb {
+    width: 6px;
+    height: 26px;
+}
+
+/* ========================================================
+   GROUPED TOGGLE CONTROLS (EQ Presets, Speed, Reverb)
+   ======================================================== */
+
+/* Classic Grouped Controls: Separate individual buttons */
+html[data-style="classic"] .eq-presets,
+html[data-style="classic"] .speed-chips,
+html[data-style="classic"] .reverb-chips,
+html[data-style="classic"] .eq-preset-chips {
+    display: flex !important;
+    flex-wrap: wrap !important;
+    background-color: transparent !important;
+    border: none !important;
+    border-radius: 0 !important;
+    padding: 0 !important;
+    gap: 6px !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+}
+
+html[data-style="classic"] .eq-preset-chip,
+html[data-style="classic"] .speed-chip,
+html[data-style="classic"] .reverb-chip {
+    flex: 0 0 auto !important;
+    padding: 6px 12px !important;
+    border-radius: 10px !important;
+    border: 1px solid var(--border-color) !important;
+    background-color: var(--bg-secondary) !important;
+    color: var(--text-secondary) !important;
+    font-size: 0.76rem !important;
+    font-weight: 600 !important;
+    cursor: pointer !important;
+    box-shadow: none !important;
+    transition: background-color 0.15s, border-color 0.15s, color 0.15s !important;
+}
+
+html[data-style="classic"] .eq-preset-chip:hover:not(.active),
+html[data-style="classic"] .speed-chip:hover:not(.active),
+html[data-style="classic"] .reverb-chip:hover:not(.active) {
+    background-color: var(--bg-secondary) !important;
+    border-color: var(--cyan-primary) !important;
+    color: var(--text-primary) !important;
+}
+
+html[data-style="classic"] .eq-preset-chip.active,
+html[data-style="classic"] .speed-chip.active,
+html[data-style="classic"] .reverb-chip.active {
+    background-color: var(--light-blue-bg) !important;
+    border-color: var(--cyan-primary) !important;
+    color: var(--cyan-primary) !important;
+    font-weight: 700 !important;
+    box-shadow: none !important;
+}
+
+/* Material 3 Expressive Grouped Controls: Single connected pill container */
+html[data-style="expressive"] .eq-presets,
+html[data-style="expressive"] .speed-chips,
+html[data-style="expressive"] .reverb-chips,
+html[data-style="expressive"] .eq-preset-chips,
+html:not([data-style="classic"]) .eq-presets,
+html:not([data-style="classic"]) .speed-chips,
+html:not([data-style="classic"]) .reverb-chips,
+html:not([data-style="classic"]) .eq-preset-chips {
+    display: flex;
+    align-items: center;
+    background-color: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: 9999px; /* Single connected pill container */
+    padding: 3px;
+    gap: 3px;
+    width: 100%;
+    box-sizing: border-box;
+    overflow-x: auto;
+    scrollbar-width: none;
+    flex-wrap: nowrap;
+}
+
+html[data-style="expressive"] .eq-presets::-webkit-scrollbar,
+html[data-style="expressive"] .speed-chips::-webkit-scrollbar,
+html[data-style="expressive"] .reverb-chips::-webkit-scrollbar,
+html[data-style="expressive"] .eq-preset-chips::-webkit-scrollbar,
+html:not([data-style="classic"]) .eq-presets::-webkit-scrollbar,
+html:not([data-style="classic"]) .speed-chips::-webkit-scrollbar,
+html:not([data-style="classic"]) .reverb-chips::-webkit-scrollbar,
+html:not([data-style="classic"]) .eq-preset-chips::-webkit-scrollbar {
+    display: none;
+}
+
+html[data-style="expressive"] .eq-preset-chip,
+html[data-style="expressive"] .speed-chip,
+html[data-style="expressive"] .reverb-chip,
+html:not([data-style="classic"]) .eq-preset-chip,
+html:not([data-style="classic"]) .speed-chip,
+html:not([data-style="classic"]) .reverb-chip {
+    flex: 1;
+    padding: 6px 10px;
+    border: none;
+    border-radius: 9999px;
+    background-color: transparent;
+    color: var(--text-secondary);
+    font-size: 0.76rem;
+    font-weight: 600;
+    cursor: pointer;
+    white-space: nowrap;
+    text-align: center;
+    transition: background-color 0.2s ease, color 0.2s ease, transform 0.25s var(--md-sys-motion-spring), font-weight 0.15s ease;
+    outline: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+html[data-style="expressive"] .eq-preset-chip:hover:not(.active),
+html[data-style="expressive"] .speed-chip:hover:not(.active),
+html[data-style="expressive"] .reverb-chip:hover:not(.active),
+html:not([data-style="classic"]) .eq-preset-chip:hover:not(.active),
+html:not([data-style="classic"]) .speed-chip:hover:not(.active),
+html:not([data-style="classic"]) .reverb-chip:hover:not(.active) {
+    background-color: rgba(0, 0, 0, 0.05);
+    color: var(--text-primary);
+}
+
+html[data-theme="dark"][data-style="expressive"] .eq-preset-chip:hover:not(.active),
+html[data-theme="dark"][data-style="expressive"] .speed-chip:hover:not(.active),
+html[data-theme="dark"][data-style="expressive"] .reverb-chip:hover:not(.active),
+html[data-theme="dark"]:not([data-style="classic"]) .eq-preset-chip:hover:not(.active),
+html[data-theme="dark"]:not([data-style="classic"]) .speed-chip:hover:not(.active),
+html[data-theme="dark"]:not([data-style="classic"]) .reverb-chip:hover:not(.active) {
+    background-color: rgba(255, 255, 255, 0.06);
+}
+
+/* Active Segment: Morphs into distinct rounded pill with contrasting tonal fill & bold label */
+html[data-style="expressive"] .eq-preset-chip.active,
+html[data-style="expressive"] .speed-chip.active,
+html[data-style="expressive"] .reverb-chip.active,
+html:not([data-style="classic"]) .eq-preset-chip.active,
+html:not([data-style="classic"]) .speed-chip.active,
+html:not([data-style="classic"]) .reverb-chip.active {
+    background-color: var(--cyan-primary);
+    color: var(--text-on-accent, #FFFFFF);
+    font-weight: 700;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.12);
+}
+
+.eq-preset-chip:active,
+.speed-chip:active,
+.reverb-chip:active {
+    transform: scale(0.92);
 }
 
 /* =========================================
-   DOWNLOAD STUDIO STYLES (Light Theme)
+   DOWNLOAD STUDIO STYLES
    ========================================= */
 .download-page-wrap {
     width: 100%;
@@ -1442,7 +2448,6 @@ body {
     padding: 12px 18px;
     background-color: var(--bg-card);
     border: 1px solid var(--border-color);
-    border-radius: 18px;
     box-shadow: 0 4px 16px rgba(15, 23, 42, 0.04);
 }
 
@@ -1453,8 +2458,7 @@ body {
     background-color: var(--bg-secondary);
     border: 1px solid var(--border-color);
     color: var(--text-primary);
-    padding: 6px 12px;
-    border-radius: 10px;
+    padding: 6px 14px;
     font-size: 0.8rem;
     font-weight: 600;
     text-decoration: none;
@@ -1478,7 +2482,6 @@ body {
 .download-card {
     background-color: var(--bg-card);
     border: 1px solid var(--border-color);
-    border-radius: 20px;
     padding: 20px;
     display: flex;
     flex-direction: column;
@@ -1536,10 +2539,8 @@ body {
     gap: 12px;
 }
 
+/* Download Preview Button */
 .download-preview-btn {
-    width: 38px;
-    height: 38px;
-    border-radius: 10px;
     background-color: var(--cyan-primary);
     color: #fff;
     border: none;
@@ -1548,11 +2549,82 @@ body {
     justify-content: center;
     cursor: pointer;
     flex-shrink: 0;
-    transition: background-color 0.15s;
 }
 
 .download-preview-btn:hover {
     background-color: var(--cyan-hover);
+}
+
+/* Classic Download Controls */
+html[data-style="classic"] .download-card,
+html[data-style="classic"] .download-top-bar {
+    border-radius: 16px !important;
+}
+
+html[data-style="classic"] .download-back-btn {
+    border-radius: 10px !important;
+}
+
+html[data-style="classic"] .download-preview-btn {
+    width: 38px !important;
+    height: 38px !important;
+    border-radius: 12px !important;
+    transition: transform 0.15s ease, background-color 0.15s ease !important;
+}
+
+html[data-style="classic"] .download-preview-btn.playing,
+html[data-style="classic"] .download-card.playing .download-preview-btn {
+    border-radius: 12px !important;
+}
+
+html[data-style="classic"] .btn-8d-toggle {
+    border-radius: 10px !important;
+}
+
+html[data-style="classic"] .btn-download-action {
+    border-radius: 12px !important;
+    height: 46px !important;
+}
+
+/* Material 3 Expressive Download Controls */
+html[data-style="expressive"] .download-card,
+html[data-style="expressive"] .download-top-bar,
+html:not([data-style="classic"]) .download-card,
+html:not([data-style="classic"]) .download-top-bar {
+    border-radius: 28px;
+}
+
+html[data-style="expressive"] .download-back-btn,
+html:not([data-style="classic"]) .download-back-btn {
+    border-radius: 9999px;
+}
+
+html[data-style="expressive"] .download-preview-btn,
+html:not([data-style="classic"]) .download-preview-btn {
+    width: 42px;
+    height: 42px;
+    border-radius: 21px; /* Rounded pill/circle when paused */
+    transition: border-radius 0.45s var(--md-sys-motion-spring), transform 0.35s var(--md-sys-motion-spring), background-color 0.2s ease;
+}
+
+html[data-style="expressive"] .download-preview-btn.playing,
+html[data-style="expressive"] .download-card.playing .download-preview-btn,
+html:not([data-style="classic"]) .download-preview-btn.playing,
+html:not([data-style="classic"]) .download-card.playing .download-preview-btn {
+    border-radius: 12px; /* Morphs to squircle when playing */
+}
+
+html[data-style="expressive"] .btn-8d-toggle,
+html:not([data-style="classic"]) .btn-8d-toggle {
+    border-radius: 9999px;
+    padding: 7px 16px;
+}
+
+html[data-style="expressive"] .btn-download-action,
+html:not([data-style="classic"]) .btn-download-action {
+    border-radius: 9999px;
+    height: 50px;
+    font-weight: 700;
 }
 
 .download-preview-time {
@@ -1569,7 +2641,6 @@ body {
     align-items: center;
     gap: 6px;
     padding: 6px 14px;
-    border-radius: 10px;
     border: 1px solid var(--border-color);
     background-color: var(--bg-secondary);
     color: var(--text-secondary);
@@ -1598,7 +2669,6 @@ body {
     font-size: 0.92rem;
     font-weight: 700;
     padding: 13px 20px;
-    border-radius: 14px;
     border: none;
     cursor: pointer;
     display: flex;
@@ -1774,13 +2844,15 @@ body {
         height: 6px;
     }
 
-    .btn-settings-toggle {
+    .btn-settings-toggle,
+    .btn-theme-toggle {
         width: 34px;
         height: 34px;
         border-radius: 10px;
     }
 
-    .btn-settings-toggle svg {
+    .btn-settings-toggle svg,
+    .btn-theme-toggle svg {
         width: 16px;
         height: 16px;
     }
@@ -1824,12 +2896,7 @@ body {
     }
 
     .progress-bar-container {
-        height: 6px;
-        border-radius: 3px;
-    }
-
-    .progress-bar-fill {
-        border-radius: 3px;
+        height: 28px;
     }
 
     .time-display {
@@ -1908,13 +2975,7 @@ body {
     }
 
     .volume-slider {
-        height: 4px;
-        border-radius: 2px;
-    }
-
-    .volume-slider::-webkit-slider-thumb {
-        width: 14px;
-        height: 14px;
+        height: 24px;
     }
 
     /* Audio Settings Panel */
@@ -1968,15 +3029,6 @@ body {
         width: 20px;
     }
 
-    .eq-slider {
-        height: 4px;
-    }
-
-    .eq-slider::-webkit-slider-thumb {
-        width: 14px;
-        height: 14px;
-    }
-
     .eq-presets,
     .speed-chips,
     .reverb-chips {
@@ -1988,7 +3040,21 @@ body {
     .reverb-chip {
         font-size: 0.68rem;
         padding: 3px 8px;
-        border-radius: 8px;
+    }
+
+    html[data-style="classic"] .eq-preset-chip,
+    html[data-style="classic"] .speed-chip,
+    html[data-style="classic"] .reverb-chip {
+        border-radius: 8px !important;
+    }
+
+    html[data-style="expressive"] .eq-preset-chip,
+    html[data-style="expressive"] .speed-chip,
+    html[data-style="expressive"] .reverb-chip,
+    html:not([data-style="classic"]) .eq-preset-chip,
+    html:not([data-style="classic"]) .speed-chip,
+    html:not([data-style="classic"]) .reverb-chip {
+        border-radius: 9999px;
     }
 
     /* Playlist Card */
@@ -2046,9 +3112,18 @@ body {
     }
 
     .search-box input {
-        padding: 7px 10px 7px 30px;
-        font-size: 0.8rem;
-        border-radius: 9px;
+        padding: 0 14px 0 38px;
+        font-size: 0.85rem;
+        height: 42px;
+    }
+
+    html[data-style="classic"] .search-box input {
+        border-radius: 10px !important;
+    }
+
+    html[data-style="expressive"] .search-box input,
+    html:not([data-style="classic"]) .search-box input {
+        border-radius: 9999px;
     }
 
     .search-icon {
@@ -2077,7 +3152,15 @@ body {
         flex: 0 0 auto;
         padding: 4px 10px;
         font-size: 0.72rem;
-        border-radius: 14px;
+    }
+
+    html[data-style="classic"] .tab-chip {
+        border-radius: 16px !important;
+    }
+
+    html[data-style="expressive"] .tab-chip,
+    html:not([data-style="classic"]) .tab-chip {
+        border-radius: 8px;
     }
 
     /* Playlist Items List */
