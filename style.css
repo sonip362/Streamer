@@ -8,8 +8,6 @@
       "Segoe UI Symbol", "Noto Color Emoji";
     --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono",
       "Courier New", monospace;
-    --default-transition-duration: 150ms;
-    --default-transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
     --default-font-family: var(--font-sans);
     --default-mono-font-family: var(--font-mono);
   }
@@ -870,6 +868,34 @@ body {
   justify-content: center;
   cursor: pointer;
   transition: background-color 0.15s, color 0.15s;
+}
+.btn-item-like {
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background-color 0.15s, color 0.15s, transform 0.15s;
+  flex-shrink: 0;
+}
+.btn-item-like:hover {
+  background-color: var(--bg-secondary);
+  color: #EF4444;
+}
+.btn-item-like:active {
+  transform: scale(0.9);
+}
+.btn-item-like.liked {
+  color: #EF4444;
+}
+.btn-item-like.liked svg {
+  fill: #EF4444;
+  stroke: #EF4444;
 }
 .btn-item-menu:hover, .btn-item-download:hover {
   background-color: var(--bg-secondary);
@@ -1964,12 +1990,12 @@ body {
   .item-duration {
     font-size: 0.72rem;
   }
-  .btn-item-menu, .btn-item-download {
+  .btn-item-like, .btn-item-menu, .btn-item-download {
     width: 28px;
     height: 28px;
     border-radius: 8px;
   }
-  .btn-item-menu svg, .btn-item-download svg {
+  .btn-item-like svg, .btn-item-menu svg, .btn-item-download svg {
     width: 16px;
     height: 16px;
   }

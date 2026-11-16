@@ -32,6 +32,72 @@ let selectedTrackForDownload = null;
 let toastTimeout = null;
 let is8DProcessingAborted = false;
 
+// Liked Tracks Storage & Helpers
+const LIKED_STORAGE_KEY = 'streamer_liked_tracks';
+let likedTrackKeys = new Set();
+
+function loadLikedTracks() {
+    try {
+        const stored = localStorage.getItem(LIKED_STORAGE_KEY);
+        if (stored) {
+            const arr = JSON.parse(stored);
+            if (Array.isArray(arr)) {
+                likedTrackKeys = new Set(arr);
+            }
+        }
+    } catch (e) {
+        likedTrackKeys = new Set();
+    }
+}
+
+function saveLikedTracks() {
+    try {
+        localStorage.setItem(LIKED_STORAGE_KEY, JSON.stringify([...likedTrackKeys]));
+    } catch (e) {}
+}
+
+function getTrackKey(track) {
+    if (!track) return '';
+    if (track.sourceTag === 'Jamendo' && track.id) {
+        return `jamendo_${track.id}`;
+    }
+    if (track.file) return track.file;
+    if (track.id) return String(track.id);
+    return `${track.artist || ''} - ${track.title || ''}`;
+}
+
+function isTrackLiked(track) {
+    return likedTrackKeys.has(getTrackKey(track));
+}
+
+function sortPlaylistTracks() {
+    playlist.sort((a, b) => {
+        const aLiked = isTrackLiked(a);
+        const bLiked = isTrackLiked(b);
+        if (aLiked && !bLiked) return -1;
+        if (!aLiked && bLiked) return 1;
+        const titleA = (a.title || '').trim().toLowerCase();
+        const titleB = (b.title || '').trim().toLowerCase();
+        const cmp = titleA.localeCompare(titleB);
+        if (cmp !== 0) return cmp;
+        const artistA = (a.artist || '').trim().toLowerCase();
+        const artistB = (b.artist || '').trim().toLowerCase();
+        return artistA.localeCompare(artistB);
+    });
+
+    if (currentPlayingTrack) {
+        const newIdx = playlist.findIndex(t => 
+            (currentPlayingTrack.id && t.id === currentPlayingTrack.id) ||
+            (currentPlayingTrack.file && t.file === currentPlayingTrack.file)
+        );
+        if (newIdx !== -1) {
+            currentIndex = newIdx;
+        }
+    }
+}
+
+loadLikedTracks();
+
 // Audio Settings State
 let eqNodes = [];       // BiquadFilterNode array
 let mainAudioPathGainNode = null; // GainNode for main dry path
@@ -345,6 +411,7 @@ async function loadMP3Tracks() {
         playlist.push(trackMeta);
     }
 
+    sortPlaylistTracks();
     generateShuffleOrder();
     if (!currentPlayingTrack && playlist.length > 0) {
         loadTrack(0);
@@ -410,6 +477,7 @@ async function fetchJamendoTracks(sourceType, query = "", append = false) {
                 loadMoreContainer.style.display = data.results.length >= PAGE_LIMIT ? 'flex' : 'none';
             }
 
+            sortPlaylistTracks();
             generateShuffleOrder();
             if (!append && !currentPlayingTrack && playlist.length > 0) {
                 loadTrack(0);
@@ -880,11 +948,16 @@ function renderPlaylist(filterQuery = "") {
     trackCountBadge.textContent = `${filtered.length} Track${filtered.length !== 1 ? 's' : ''}`;
 
     filtered.forEach((track) => {
-        const actualIndex = playlist.findIndex(t => t.id === track.id);
+        const actualIndex = playlist.findIndex(t => 
+            (track.id && t.id === track.id) ||
+            (track.file && t.file === track.file) ||
+            t === track
+        );
         const isActive = currentPlayingTrack && (
             (currentPlayingTrack.id && currentPlayingTrack.id === track.id) ||
             (currentPlayingTrack.title && currentPlayingTrack.title === track.title)
         );
+        const isLiked = isTrackLiked(track);
 
         const formattedTitle = formatPlaylistTitle(track.title, 22);
         const formattedArtist = formatPlaylistArtist(track.artist, 24);
@@ -909,6 +982,11 @@ function renderPlaylist(filterQuery = "") {
                 </div>
             </div>
             <div class="item-right">
+                <button class="btn-item-like ${isLiked ? 'liked' : ''}" title="${isLiked ? 'Unlike' : 'Like'}" onclick="event.stopPropagation(); handleToggleLike(${actualIndex})">
+                    <svg width="17" height="17" viewBox="0 0 24 24" fill="${isLiked ? '#EF4444' : 'none'}" stroke="${isLiked ? '#EF4444' : 'currentColor'}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
+                    </svg>
+                </button>
                 <button class="btn-item-menu" title="Track Options" onclick="event.stopPropagation(); handleTrackMenuClick(${actualIndex})">
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
                         <circle cx="12" cy="5" r="2"></circle>
@@ -923,6 +1001,25 @@ function renderPlaylist(filterQuery = "") {
         playlistItemsEl.appendChild(li);
     });
 }
+
+window.handleToggleLike = function (index) {
+    const track = playlist[index];
+    if (!track) return;
+    const key = getTrackKey(track);
+    if (!key) return;
+
+    if (likedTrackKeys.has(key)) {
+        likedTrackKeys.delete(key);
+    } else {
+        likedTrackKeys.add(key);
+    }
+    saveLikedTracks();
+    sortPlaylistTracks();
+    generateShuffleOrder();
+
+    const searchVal = searchInput ? searchInput.value : "";
+    renderPlaylist(searchVal);
+};
 
 window.handleTrackMenuClick = function (index) {
     const track = playlist[index];

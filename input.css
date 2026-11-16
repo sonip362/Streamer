@@ -811,6 +811,39 @@ body {
     transition: background-color 0.15s, color 0.15s;
 }
 
+.btn-item-like {
+    background: transparent;
+    border: none;
+    color: var(--text-muted);
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: background-color 0.15s, color 0.15s, transform 0.15s;
+    flex-shrink: 0;
+}
+
+.btn-item-like:hover {
+    background-color: var(--bg-secondary);
+    color: #EF4444;
+}
+
+.btn-item-like:active {
+    transform: scale(0.9);
+}
+
+.btn-item-like.liked {
+    color: #EF4444;
+}
+
+.btn-item-like.liked svg {
+    fill: #EF4444;
+    stroke: #EF4444;
+}
+
 .btn-item-menu:hover,
 .btn-item-download:hover {
     background-color: var(--bg-secondary);
@@ -2119,6 +2152,7 @@ body {
         font-size: 0.72rem;
     }
 
+    .btn-item-like,
     .btn-item-menu,
     .btn-item-download {
         width: 28px;
@@ -2126,6 +2160,7 @@ body {
         border-radius: 8px;
     }
 
+    .btn-item-like svg,
     .btn-item-menu svg,
     .btn-item-download svg {
         width: 16px;
