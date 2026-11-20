@@ -164,7 +164,10 @@ function showSpinner(msg = "Loading stream...") {
     if (spinnerOverlay) spinnerOverlay.style.display = 'flex';
 }
 
-function hideSpinner() {
+let isLoadingMP3Batch = false;
+
+function hideSpinner(force = false) {
+    if (isLoadingMP3Batch && !force) return;
     if (spinnerOverlay) spinnerOverlay.style.display = 'none';
 }
 
@@ -292,8 +295,16 @@ function fallbackMetadataFromFilename(filename) {
     };
 }
 
+// Metadata Cache for local/MP3 files to avoid redundant re-fetching
+const mp3MetadataCache = new Map();
+let mp3LoadToken = 0;
+
 // Fetch MP3 file header bytes & parse ID3 tags
 async function fetchMetadataForMP3(filename) {
+    if (mp3MetadataCache.has(filename)) {
+        return mp3MetadataCache.get(filename);
+    }
+
     const encodedFilename = encodeURIComponent(filename);
     const jsdelivrUrl = JSDELIVR_BASE + encodedFilename;
     const githubRawUrl = GITHUB_RAW_BASE + encodedFilename;
@@ -303,23 +314,34 @@ async function fetchMetadataForMP3(filename) {
     let arrayBuffer = null;
     let streamUrl = jsdelivrUrl;
 
-    // Try reading header bytes for ID3 tag parsing
+    const fetchHeaders = { 'Range': 'bytes=0-8192' };
+
+    // Try reading header bytes for ID3 tag parsing with timeout
     try {
-        const res = await fetch(jsdelivrUrl, { headers: { 'Range': 'bytes=0-8192' } });
+        const res = await fetch(jsdelivrUrl, { 
+            headers: fetchHeaders,
+            signal: AbortSignal.timeout ? AbortSignal.timeout(6000) : undefined 
+        });
         if (res.ok || res.status === 206) {
             arrayBuffer = await res.arrayBuffer();
             streamUrl = jsdelivrUrl;
         } else throw new Error();
     } catch (e) {
         try {
-            const res = await fetch(githubRawUrl, { headers: { 'Range': 'bytes=0-8192' } });
+            const res = await fetch(githubRawUrl, { 
+                headers: fetchHeaders,
+                signal: AbortSignal.timeout ? AbortSignal.timeout(6000) : undefined 
+            });
             if (res.ok || res.status === 206) {
                 arrayBuffer = await res.arrayBuffer();
                 streamUrl = githubRawUrl;
             } else throw new Error();
         } catch (err) {
             try {
-                const res = await fetch(musicSubfolderUrl, { headers: { 'Range': 'bytes=0-8192' } });
+                const res = await fetch(musicSubfolderUrl, { 
+                    headers: fetchHeaders,
+                    signal: AbortSignal.timeout ? AbortSignal.timeout(4000) : undefined 
+                });
                 if (res.ok || res.status === 206) {
                     arrayBuffer = await res.arrayBuffer();
                     streamUrl = musicSubfolderUrl;
@@ -335,7 +357,7 @@ async function fetchMetadataForMP3(filename) {
 
     const fallback = fallbackMetadataFromFilename(filename);
 
-    return {
+    const trackMeta = {
         id: filename,
         file: filename,
         streamUrl: streamUrl,
@@ -344,6 +366,9 @@ async function fetchMetadataForMP3(filename) {
         genre: parsed.genre || fallback.genre,
         duration: "0:00"
     };
+
+    mp3MetadataCache.set(filename, trackMeta);
+    return trackMeta;
 }
 
 // Track deduplication helper using normalized alphanumeric canonical key
@@ -356,8 +381,9 @@ function getCanonicalTrackKey(filename) {
         .replace(/[^a-z0-9]/g, '');
 }
 
-// Load MP3 tracks dynamically directly from files (local disk & GitHub API)
+// Load MP3 tracks dynamically in batches of 5 with pipelined streaming
 async function loadMP3Tracks() {
+    const currentToken = ++mp3LoadToken;
     showSpinner("Reading MP3 metadata tags...");
     const seenKeys = new Set();
     const uniqueFiles = [];
@@ -406,20 +432,100 @@ async function loadMP3Tracks() {
         files = uniqueFiles;
     }
 
+    if (currentToken !== mp3LoadToken || currentSource !== 'local') return;
+
+    // Reset playlist for MP3 source
     playlist = [];
-    for (const filename of files) {
-        const trackMeta = await fetchMetadataForMP3(filename);
-        playlist.push(trackMeta);
+    const addedTrackKeys = new Set();
+    let initialTrackLoaded = false;
+
+    const BATCH_SIZE = 5;
+    const batches = [];
+    for (let i = 0; i < files.length; i += BATCH_SIZE) {
+        batches.push(files.slice(i, i + BATCH_SIZE));
     }
 
-    sortPlaylistTracks();
-    generateShuffleOrder();
-    if (!currentPlayingTrack && playlist.length > 0) {
-        loadTrack(0);
-    } else {
+    if (batches.length === 0) {
+        isLoadingMP3Batch = false;
+        hideSpinner(true);
         renderPlaylist(searchInput.value);
+        return;
     }
-    hideSpinner();
+
+    isLoadingMP3Batch = true;
+    showSpinner(`Reading MP3 tags (0/${files.length})...`);
+
+    // Process batch-by-batch:
+    // When first 5 are loaded, display them in the playlist.
+    // Then load 5 again and again, showing each completed batch of 5.
+    // The spinner remains active until all tracks are loaded.
+    for (let b = 0; b < batches.length; b++) {
+        if (currentToken !== mp3LoadToken || currentSource !== 'local') break;
+
+        const batchFiles = batches[b];
+
+        // Fetch & parse the 5 tracks of this batch
+        const batchResults = await Promise.all(batchFiles.map(async (filename) => {
+            if (currentToken !== mp3LoadToken || currentSource !== 'local') return null;
+
+            try {
+                return await fetchMetadataForMP3(filename);
+            } catch (err) {
+                console.warn("Failed reading MP3 metadata for:", filename, err);
+                const fallback = fallbackMetadataFromFilename(filename);
+                const encodedFilename = encodeURIComponent(filename);
+                return {
+                    id: filename,
+                    file: filename,
+                    streamUrl: JSDELIVR_BASE + encodedFilename,
+                    title: fallback.title,
+                    artist: fallback.artist,
+                    genre: fallback.genre,
+                    duration: "0:00"
+                };
+            }
+        }));
+
+        if (currentToken !== mp3LoadToken || currentSource !== 'local') break;
+
+        // Add this completed batch of 5 to the playlist
+        for (const trackMeta of batchResults) {
+            if (!trackMeta) continue;
+            const trackKey = getTrackKey(trackMeta);
+            if (!addedTrackKeys.has(trackKey)) {
+                addedTrackKeys.add(trackKey);
+                playlist.push(trackMeta);
+            }
+        }
+
+        // When the first 5 (first batch) are loaded, initialize first track in player
+        if (!initialTrackLoaded && playlist.length > 0 && !currentPlayingTrack) {
+            initialTrackLoaded = true;
+            loadTrack(0);
+        }
+
+        // Show the newly loaded batch of 5 in the playlist UI immediately
+        renderPlaylist(searchInput.value);
+
+        if (trackCountBadge) {
+            trackCountBadge.textContent = `${playlist.length} of ${files.length} tracks`;
+        }
+
+        // Keep spinner visible showing updated progress
+        showSpinner(`Reading MP3 tags (${playlist.length}/${files.length})...`);
+    }
+
+    if (currentToken === mp3LoadToken && currentSource === 'local') {
+        sortPlaylistTracks();
+        generateShuffleOrder();
+        renderPlaylist(searchInput.value);
+        if (trackCountBadge) {
+            trackCountBadge.textContent = `${playlist.length} track${playlist.length !== 1 ? 's' : ''}`;
+        }
+    }
+
+    isLoadingMP3Batch = false;
+    hideSpinner(true);
 }
 
 let jamendoOffset = 0;
@@ -514,8 +620,9 @@ const btnRefreshTracks = document.getElementById('btnRefreshTracks');
 if (btnRefreshTracks) {
     btnRefreshTracks.addEventListener('click', () => {
         if (currentSource === 'local') {
+            mp3MetadataCache.clear();
             loadMP3Tracks();
-            showToast("Syncing MP3 Tracks", "Reading metadata from GitHub & disk...", false);
+            showToast("Syncing MP3 Tracks", "Reading metadata in batches...", false);
         } else {
             fetchJamendoTracks(currentSource, searchInput.value);
             showToast("Refreshing Jamendo", "Fetching latest Jamendo tracks...", false);
@@ -1468,7 +1575,9 @@ function loadTrack(index) {
     const rawGithubUrl = GITHUB_RAW_BASE + encodedFile;
     const streamUrl = track.streamUrl || jsdelivrUrl;
 
-    showSpinner("Loading audio stream...");
+    if (!isLoadingMP3Batch) {
+        showSpinner("Loading audio stream...");
+    }
     audio.src = streamUrl;
 
     let fallbackStage = 0;
