@@ -83,13 +83,22 @@
                 <!-- EQ Section -->
                 <div class="settings-section">
                     <div class="settings-section-header">
-                        <span class="settings-section-title">Equalizer</span>
-                        <div class="eq-presets">
-                            <button class="eq-preset-chip active" data-preset="flat">Flat</button>
-                            <button class="eq-preset-chip" data-preset="bass">Bass↑</button>
-                            <button class="eq-preset-chip" data-preset="treble">Treble↑</button>
-                            <button class="eq-preset-chip" data-preset="vocal">Vocal</button>
-                            <button class="eq-preset-chip" data-preset="rock">Rock</button>
+                        <div class="flex items-center gap-2">
+                            <span class="settings-section-title">Equalizer</span>
+                            <button class="m3-switch active" id="btnEqBypass" role="switch" aria-checked="true" title="Toggle Equalizer On/Off">
+                                <span class="m3-switch-track">
+                                    <span class="m3-switch-thumb"></span>
+                                </span>
+                            </button>
+                        </div>
+                        <div class="eq-header-actions">
+                            <div class="eq-presets">
+                                <button class="eq-preset-chip active" data-preset="flat">Flat</button>
+                                <button class="eq-preset-chip" data-preset="bass">Bass↑</button>
+                                <button class="eq-preset-chip" data-preset="treble">Treble↑</button>
+                                <button class="eq-preset-chip" data-preset="vocal">Vocal</button>
+                                <button class="eq-preset-chip" data-preset="rock">Rock</button>
+                            </div>
                         </div>
                     </div>
                     <div class="eq-bands">
@@ -172,15 +181,32 @@
             <!-- Left: Now Playing Player Card -->
             <section class="player-card" id="playerCard">
                 <div class="artwork-container" id="artworkContainer">
-                    <canvas id="liveWaveCanvas"></canvas>
+                    <canvas id="liveWaveCanvas" style="display: none;"></canvas>
+
+                    <div class="artwork-bars-display" id="artworkBarsDisplay" title="Audio Activity">
+                        <span class="eq-full-bar b-1"></span>
+                        <span class="eq-full-bar b-2"></span>
+                        <span class="eq-full-bar b-3"></span>
+                        <span class="eq-full-bar b-4"></span>
+                        <span class="eq-full-bar b-5"></span>
+                        <span class="eq-full-bar b-6"></span>
+                        <span class="eq-full-bar b-7"></span>
+                        <span class="eq-full-bar b-8"></span>
+                        <span class="eq-full-bar b-9"></span>
+                        <span class="eq-full-bar b-10"></span>
+                        <span class="eq-full-bar b-11"></span>
+                        <span class="eq-full-bar b-12"></span>
+                        <span class="eq-full-bar b-13"></span>
+                        <span class="eq-full-bar b-14"></span>
+                        <span class="eq-full-bar b-15"></span>
+                        <span class="eq-full-bar b-16"></span>
+                    </div>
 
                     <!-- Minimalist Spinner Overlay when loading or offline -->
                     <div class="spinner-overlay" id="spinnerOverlay" style="display: none;">
                         <div class="spinner-icon"></div>
                         <span class="spinner-text" id="spinnerText">Loading stream...</span>
                     </div>
-
-                    <span class="artwork-badge" id="artworkGenre">Electronic / Phonk</span>
                 </div>
 
                 <div class="track-info">
@@ -518,8 +544,9 @@
         </div>
     </div>
 
-    <!-- Hidden Audio Element -->
-    <audio id="audioPlayer" preload="metadata" crossorigin="anonymous"></audio>
+    <!-- Hidden Audio Elements (Dual Decks for Gapless Overlapping Crossfade) -->
+    <audio id="audioPlayer" preload="auto" crossorigin="anonymous"></audio>
+    <audio id="audioPlayerNext" preload="auto" crossorigin="anonymous"></audio>
 
     <script src="script.js"></script>
 </body>

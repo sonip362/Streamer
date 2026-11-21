@@ -8,6 +8,7 @@
       "Segoe UI Symbol", "Noto Color Emoji";
     --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono",
       "Courier New", monospace;
+    --spacing: 0.25rem;
     --default-font-family: var(--font-sans);
     --default-mono-font-family: var(--font-mono);
   }
@@ -161,6 +162,9 @@
   }
 }
 @layer utilities {
+  .visible {
+    visibility: visible;
+  }
   .relative {
     position: relative;
   }
@@ -199,6 +203,12 @@
   }
   .resize {
     resize: both;
+  }
+  .items-center {
+    align-items: center;
+  }
+  .gap-2 {
+    gap: calc(var(--spacing) * 2);
   }
   .rounded {
     border-radius: 0.25rem;
@@ -499,6 +509,92 @@ body {
   border-radius: 14px;
   z-index: 1;
 }
+.artwork-bars-display {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  width: 100%;
+  height: 100%;
+  padding: 24px 20px;
+  box-sizing: border-box;
+  pointer-events: none;
+}
+.eq-full-bar {
+  flex: 1;
+  max-width: 6px;
+  min-width: 3px;
+  height: 68%;
+  background-color: var(--cyan-primary);
+  border-radius: 9999px;
+  transform-origin: center;
+  transform: scaleY(0.08);
+  transition: transform 0.25s cubic-bezier(0.2, 0, 0, 1), background-color 0.2s ease;
+}
+.eq-full-bar:nth-child(even) {
+  background-color: var(--cyan-hover);
+}
+.player-card.playing .b-1 {
+  animation: eqFullBounce 0.75s ease-in-out infinite alternate 0.05s;
+}
+.player-card.playing .b-2 {
+  animation: eqFullBounce 0.60s ease-in-out infinite alternate 0.18s;
+}
+.player-card.playing .b-3 {
+  animation: eqFullBounce 0.85s ease-in-out infinite alternate 0.10s;
+}
+.player-card.playing .b-4 {
+  animation: eqFullBounce 0.68s ease-in-out infinite alternate 0.25s;
+}
+.player-card.playing .b-5 {
+  animation: eqFullBounce 0.92s ease-in-out infinite alternate 0.02s;
+}
+.player-card.playing .b-6 {
+  animation: eqFullBounce 0.55s ease-in-out infinite alternate 0.32s;
+}
+.player-card.playing .b-7 {
+  animation: eqFullBounce 0.78s ease-in-out infinite alternate 0.15s;
+}
+.player-card.playing .b-8 {
+  animation: eqFullBounce 0.64s ease-in-out infinite alternate 0.28s;
+}
+.player-card.playing .b-9 {
+  animation: eqFullBounce 0.88s ease-in-out infinite alternate 0.08s;
+}
+.player-card.playing .b-10 {
+  animation: eqFullBounce 0.58s ease-in-out infinite alternate 0.22s;
+}
+.player-card.playing .b-11 {
+  animation: eqFullBounce 0.82s ease-in-out infinite alternate 0.12s;
+}
+.player-card.playing .b-12 {
+  animation: eqFullBounce 0.70s ease-in-out infinite alternate 0.30s;
+}
+.player-card.playing .b-13 {
+  animation: eqFullBounce 0.90s ease-in-out infinite alternate 0.04s;
+}
+.player-card.playing .b-14 {
+  animation: eqFullBounce 0.62s ease-in-out infinite alternate 0.16s;
+}
+.player-card.playing .b-15 {
+  animation: eqFullBounce 0.80s ease-in-out infinite alternate 0.24s;
+}
+.player-card.playing .b-16 {
+  animation: eqFullBounce 0.66s ease-in-out infinite alternate 0.09s;
+}
+@keyframes eqFullBounce {
+  0% {
+    transform: scaleY(0.12);
+  }
+  50% {
+    transform: scaleY(0.55);
+  }
+  100% {
+    transform: scaleY(1.0);
+  }
+}
 .spinner-overlay {
   position: absolute;
   top: 0;
@@ -536,18 +632,6 @@ body {
   100% {
     transform: rotate(360deg);
   }
-}
-.artwork-badge {
-  position: absolute;
-  bottom: 12px;
-  background-color: var(--bg-card);
-  border: 1px solid var(--border-color);
-  padding: 4px 10px;
-  border-radius: 12px;
-  font-size: 0.72rem;
-  color: var(--text-secondary);
-  font-weight: 600;
-  z-index: 2;
 }
 .track-info {
   text-align: center;
@@ -1916,6 +2000,94 @@ html[data-style="expressive"] .settings-section, html:not([data-style="classic"]
   gap: 10px;
   flex-wrap: wrap;
 }
+.eq-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.m3-switch {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  background: transparent;
+  border: none;
+  padding: 0;
+  margin: 0;
+  cursor: pointer;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+  vertical-align: middle;
+}
+.m3-switch-track {
+  position: relative;
+  display: inline-block;
+  width: 32px;
+  height: 18px;
+  border-radius: 9999px;
+  background-color: var(--bg-secondary);
+  border: 1.5px solid var(--border-color);
+  transition: background-color 0.2s cubic-bezier(0.2, 0, 0, 1), border-color 0.2s cubic-bezier(0.2, 0, 0, 1);
+  box-sizing: border-box;
+}
+.m3-switch-thumb {
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 11px;
+  height: 11px;
+  border-radius: 50%;
+  background-color: var(--text-muted);
+  transition: transform 0.2s cubic-bezier(0.2, 0, 0, 1), background-color 0.2s cubic-bezier(0.2, 0, 0, 1);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.25);
+}
+.m3-switch.active .m3-switch-track {
+  background-color: var(--cyan-primary);
+  border-color: var(--cyan-primary);
+}
+.m3-switch.active .m3-switch-thumb {
+  background-color: #FFFFFF;
+  transform: translateX(14px);
+}
+.m3-switch:focus-visible {
+  outline: 2px solid var(--cyan-primary);
+  outline-offset: 2px;
+  border-radius: 9999px;
+}
+.eq-bypass-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 9px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  border-radius: 9999px;
+  cursor: pointer;
+  border: 1px solid var(--border-color);
+  background-color: var(--bg-secondary);
+  color: var(--text-muted);
+  transition: all 0.2s cubic-bezier(0.2, 0, 0, 1);
+  user-select: none;
+}
+.eq-bypass-btn:hover {
+  border-color: var(--cyan-primary);
+  color: var(--text-primary);
+}
+.eq-bypass-btn.active {
+  background-color: var(--cyan-primary);
+  color: #FFFFFF;
+  border-color: var(--cyan-primary);
+}
+.eq-status-indicator {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background-color: var(--text-muted);
+  transition: background-color 0.2s ease;
+}
+.eq-bypass-btn.active .eq-status-indicator {
+  background-color: #FFFFFF;
+}
 .settings-section-title {
   font-size: 0.78rem;
   font-weight: 700;
@@ -2505,12 +2677,6 @@ html[data-style="expressive"] .btn-download-action, html:not([data-style="classi
     max-height: 140px;
     margin: 0 auto;
     border-radius: 14px;
-  }
-  .artwork-badge {
-    bottom: 8px;
-    padding: 2px 8px;
-    font-size: 0.68rem;
-    border-radius: 10px;
   }
   .track-info {
     margin-bottom: 0;

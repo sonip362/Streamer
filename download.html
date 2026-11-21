@@ -92,8 +92,17 @@
         <!-- Equalizer Card -->
         <section class="download-card">
             <div class="settings-section-header">
-                <span class="settings-section-title">Parametric Equalizer</span>
-                <span class="settings-val-badge" id="eqPresetBadge">Flat</span>
+                <div class="flex items-center gap-2">
+                    <span class="settings-section-title">Parametric Equalizer</span>
+                    <button class="m3-switch active" id="btnEqBypass" role="switch" aria-checked="true" title="Toggle Equalizer On/Off">
+                        <span class="m3-switch-track">
+                            <span class="m3-switch-thumb"></span>
+                        </span>
+                    </button>
+                </div>
+                <div class="eq-header-actions">
+                    <span class="settings-val-badge" id="eqPresetBadge">Flat</span>
+                </div>
             </div>
 
             <div class="eq-presets">

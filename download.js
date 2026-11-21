@@ -42,6 +42,29 @@ if (!currentTrack.title && !currentTrack.file) {
 if (!currentTrack.title) currentTrack.title = 'Selected Track';
 if (!currentTrack.artist) currentTrack.artist = 'Streamer Audio';
 
+// Global Cached Theme Colors (Eliminates getComputedStyle() from 30/60FPS render loops)
+const cachedThemeColors = {
+    canvasBg: '#F1F5F9',
+    strokeLineColor: '#CBD5E1',
+    primaryAccent: '#06B6D4',
+    lightAccent: '#38BDF8',
+    inactiveTrack: '#E2E8F0',
+    isDark: false
+};
+
+function updateCachedThemeColors() {
+    try {
+        const docStyle = getComputedStyle(document.documentElement);
+        cachedThemeColors.canvasBg = docStyle.getPropertyValue('--bg-secondary').trim() || '#F1F5F9';
+        cachedThemeColors.strokeLineColor = docStyle.getPropertyValue('--border-color').trim() || '#CBD5E1';
+        cachedThemeColors.primaryAccent = docStyle.getPropertyValue('--cyan-primary').trim() || '#06B6D4';
+        cachedThemeColors.lightAccent = docStyle.getPropertyValue('--light-blue').trim() || '#38BDF8';
+        cachedThemeColors.isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+        cachedThemeColors.inactiveTrack = cachedThemeColors.isDark ? '#273549' : '#E2E8F0';
+    } catch (e) {}
+}
+updateCachedThemeColors();
+
 // DOM Elements
 const trackTitleEl = document.getElementById('trackTitle');
 const trackArtistEl = document.getElementById('trackArtist');
@@ -217,6 +240,67 @@ window.addEventListener('beforeunload', () => {
 // =============================================================
 // WEB AUDIO GRAPH INITIALIZATION (LIVE PREVIEW)
 // =============================================================
+let isEqBypassed = false;
+
+function updateEQRouting() {
+    if (!audioCtx || !sourceNode || !reverbDryGain || !reverbConvolver) return;
+
+    const shouldBypass = isEqBypassed;
+
+    try { sourceNode.disconnect(); } catch (e) {}
+    if (eqFilterNodes.length > 0) {
+        try { eqFilterNodes[eqFilterNodes.length - 1].disconnect(); } catch (e) {}
+    }
+
+    if (shouldBypass || eqFilterNodes.length === 0) {
+        // Direct routing bypassing filters: 0 DSP load!
+        sourceNode.connect(reverbDryGain);
+        sourceNode.connect(reverbConvolver);
+    } else {
+        sourceNode.connect(eqFilterNodes[0]);
+        const lastEq = eqFilterNodes[eqFilterNodes.length - 1];
+        lastEq.connect(reverbDryGain);
+        lastEq.connect(reverbConvolver);
+    }
+
+    const btnBypass = document.getElementById('btnEqBypass');
+    const eqBandsEl = document.querySelector('.eq-bands');
+    const eqPresetsEl = document.querySelector('.eq-presets');
+
+    if (btnBypass) {
+        if (isEqBypassed) {
+            btnBypass.classList.remove('active');
+            btnBypass.setAttribute('aria-checked', 'false');
+            btnBypass.title = 'Equalizer is Off (Click to Enable)';
+            if (eqBandsEl) eqBandsEl.style.opacity = '0.45';
+            if (eqPresetsEl) eqPresetsEl.style.opacity = '0.45';
+        } else {
+            btnBypass.classList.add('active');
+            btnBypass.setAttribute('aria-checked', 'true');
+            btnBypass.title = 'Equalizer is On (Click to Bypass)';
+            if (eqBandsEl) eqBandsEl.style.opacity = '1';
+            if (eqPresetsEl) eqPresetsEl.style.opacity = '1';
+        }
+    }
+}
+
+const btnEqBypass = document.getElementById('btnEqBypass');
+if (btnEqBypass) {
+    btnEqBypass.addEventListener('click', () => {
+        isEqBypassed = !isEqBypassed;
+        if (audioCtx) {
+            updateEQRouting();
+        } else {
+            btnEqBypass.classList.toggle('active', !isEqBypassed);
+            btnEqBypass.setAttribute('aria-checked', isEqBypassed ? 'false' : 'true');
+            const eqBandsEl = document.querySelector('.eq-bands');
+            const eqPresetsEl = document.querySelector('.eq-presets');
+            if (eqBandsEl) eqBandsEl.style.opacity = isEqBypassed ? '0.45' : '1';
+            if (eqPresetsEl) eqPresetsEl.style.opacity = isEqBypassed ? '0.45' : '1';
+        }
+    });
+}
+
 function initPreviewAudioGraph() {
     if (audioCtx) return;
 
@@ -260,22 +344,24 @@ function initPreviewAudioGraph() {
     panner8DNode.positionY.setValueAtTime(0, audioCtx.currentTime);
     panner8DNode.positionZ.setValueAtTime(0, audioCtx.currentTime);
 
-    // Connect Graph
-    sourceNode.connect(eqFilterNodes[0]);
-
-    const lastEq = eqFilterNodes[eqFilterNodes.length - 1];
-    lastEq.connect(reverbDryGain);
-    lastEq.connect(reverbConvolver);
+    // Connect Reverb Wet & Dry to Panner -> Master
     reverbConvolver.connect(reverbWetGain);
-
     reverbDryGain.connect(panner8DNode);
     reverbWetGain.connect(panner8DNode);
-
     panner8DNode.connect(audioCtx.destination);
+
+    // Dynamic routing (direct or through EQ filters)
+    updateEQRouting();
 }
 
-// Generate Algorithmic Stereo Reverb Impulse
+// Generate Algorithmic Stereo Reverb Impulse (Cached)
+const impulseResponseCache = new Map();
+
 function generateReverbImpulse(context, duration, decay) {
+    const key = `${duration}_${decay}_${context.sampleRate}`;
+    if (impulseResponseCache.has(key)) {
+        return impulseResponseCache.get(key);
+    }
     const sampleRate = context.sampleRate;
     const length = Math.floor(sampleRate * duration);
     const impulse = context.createBuffer(2, length, sampleRate);
@@ -287,6 +373,7 @@ function generateReverbImpulse(context, duration, decay) {
         left[i] = (Math.random() * 2 - 1) * factor;
         right[i] = (Math.random() * 2 - 1) * factor;
     }
+    impulseResponseCache.set(key, impulse);
     return impulse;
 }
 
@@ -378,6 +465,8 @@ class WavySlider {
         this.isHovered = false;
         this.isPlaying = false;
         this.lastTime = performance.now();
+        this.lastRenderTime = performance.now();
+        this.rafId = null;
 
         if (this.container && this.canvas && this.ctx) {
             this.init();
@@ -386,18 +475,23 @@ class WavySlider {
 
     init() {
         this.resize();
-        window.addEventListener('resize', () => this.resize());
+        window.addEventListener('resize', () => {
+            this.resize();
+            this.wake();
+        });
 
         this.container.addEventListener('pointerdown', (e) => {
             this.isSeeking = true;
             this.container.classList.add('seeking');
             try { this.container.setPointerCapture(e.pointerId); } catch (err) {}
             this.handlePointer(e);
+            this.wake();
         });
 
         this.container.addEventListener('pointermove', (e) => {
             if (this.isSeeking) {
                 this.handlePointer(e);
+                this.wake();
             }
         });
 
@@ -406,6 +500,7 @@ class WavySlider {
                 this.isSeeking = false;
                 this.container.classList.remove('seeking');
                 try { this.container.releasePointerCapture(e.pointerId); } catch (err) {}
+                this.wake();
             }
         };
 
@@ -414,12 +509,14 @@ class WavySlider {
 
         this.container.addEventListener('mouseenter', () => {
             this.isHovered = true;
+            this.wake();
         });
         this.container.addEventListener('mouseleave', () => {
             this.isHovered = false;
+            this.wake();
         });
 
-        requestAnimationFrame((t) => this.render(t));
+        this.wake();
     }
 
     handlePointer(e) {
@@ -451,16 +548,33 @@ class WavySlider {
     setProgress(val) {
         if (!this.isSeeking) {
             this.progress = Math.max(0, Math.min(1, val));
+            this.wake();
         }
     }
 
     setPlaying(playing) {
         this.isPlaying = playing;
+        this.wake();
+    }
+
+    wake() {
+        if (!this.rafId && this.ctx) {
+            this.lastTime = performance.now();
+            this.lastRenderTime = performance.now();
+            this.rafId = requestAnimationFrame((t) => this.render(t));
+        }
     }
 
     render(now) {
+        // 30 FPS Throttling (32ms minimum frame time)
+        if (now - this.lastRenderTime < 32) {
+            this.rafId = requestAnimationFrame((t) => this.render(t));
+            return;
+        }
+
         const dt = Math.min(0.1, (now - this.lastTime) / 1000);
         this.lastTime = now;
+        this.lastRenderTime = now;
 
         const isExpressive = document.documentElement.getAttribute('data-style') !== 'classic';
         const targetH = (this.isPlaying && isExpressive) ? (this.isHovered || this.isSeeking ? 10 : 8) : 0;
@@ -478,10 +592,9 @@ class WavySlider {
 
         this.ctx.clearRect(0, 0, width, height);
 
-        const style = getComputedStyle(document.documentElement);
-        const activeColor = style.getPropertyValue('--cyan-primary').trim() || '#06B6D4';
-        const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
-        const inactiveColor = isDark ? '#273549' : '#E2E8F0';
+        // Using cached theme colors
+        const activeColor = cachedThemeColors.primaryAccent;
+        const inactiveColor = cachedThemeColors.inactiveTrack;
 
         const strokeW = (this.isHovered || this.isSeeking) ? 4.5 : this.waveThickness;
 
@@ -523,7 +636,14 @@ class WavySlider {
             this.thumb.style.left = `${thumbX}px`;
         }
 
-        requestAnimationFrame((t) => this.render(t));
+        // Sleep when paused and stationary
+        if (!this.isPlaying && !this.isSeeking && !this.isHovered && Math.abs(this.currentWaveHeight - targetH) < 0.05) {
+            this.currentWaveHeight = targetH;
+            this.rafId = null;
+            return; // Complete sleep
+        }
+
+        this.rafId = requestAnimationFrame((t) => this.render(t));
     }
 }
 
@@ -613,10 +733,13 @@ previewVolume.addEventListener('input', () => {
 // EQUALIZER CONTROLS
 // =============================================================
 function applyEqGainsToNodes() {
-    if (!audioCtx || eqFilterNodes.length === 0) return;
-    eqGains.forEach((gain, i) => {
-        eqFilterNodes[i].gain.setValueAtTime(gain, audioCtx.currentTime);
-    });
+    if (!audioCtx) return;
+    if (eqFilterNodes.length > 0) {
+        eqGains.forEach((gain, i) => {
+            eqFilterNodes[i].gain.setValueAtTime(gain, audioCtx.currentTime);
+        });
+    }
+    updateEQRouting();
 }
 
 function updateEqUI() {
@@ -634,6 +757,7 @@ eqPresetChips.forEach(chip => {
         eqPresetChips.forEach(c => c.classList.remove('active'));
         chip.classList.add('active');
 
+        if (isEqBypassed) isEqBypassed = false;
         activeEqPreset = chip.dataset.preset;
         eqPresetBadge.textContent = chip.textContent;
         eqGains = [...EQ_PRESET_VALUES[activeEqPreset]];
@@ -648,6 +772,7 @@ Object.keys(eqSliders).forEach((key, index) => {
     const valKey = Object.keys(eqValBadges)[index];
     slider.addEventListener('input', () => {
         const val = parseFloat(slider.value);
+        if (isEqBypassed) isEqBypassed = false;
         eqGains[index] = val;
         eqValBadges[valKey].textContent = val > 0 ? `+${val}` : `${val}`;
 
@@ -1067,8 +1192,10 @@ function applySavedTheme() {
         const validAccents = ['cyan', 'blue', 'purple', 'pink', 'amber', 'green'];
         document.documentElement.setAttribute('data-accent', validAccents.includes(savedAccent) ? savedAccent : 'cyan');
         document.documentElement.setAttribute('data-style', savedStyle === 'classic' ? 'classic' : 'expressive');
+        updateCachedThemeColors();
         if (typeof previewWavySlider !== 'undefined' && previewWavySlider) {
             previewWavySlider.resize();
+            previewWavySlider.wake();
         }
     } catch (e) {}
 }

@@ -1,4 +1,4 @@
-const CACHE_NAME = 'streamer-pwa-v21';
+const CACHE_NAME = 'streamer-pwa-v25';
 const ASSETS_TO_CACHE = [
     '/',
     '/index.html',
