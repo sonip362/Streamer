@@ -53,7 +53,7 @@ function loadLikedTracks() {
 function saveLikedTracks() {
     try {
         localStorage.setItem(LIKED_STORAGE_KEY, JSON.stringify([...likedTrackKeys]));
-    } catch (e) {}
+    } catch (e) { }
 }
 
 // Global Cached Theme Colors (Eliminates getComputedStyle() from 30/60FPS render loops)
@@ -75,7 +75,7 @@ function updateCachedThemeColors() {
         cachedThemeColors.lightAccent = docStyle.getPropertyValue('--light-blue').trim() || '#38BDF8';
         cachedThemeColors.isDark = document.documentElement.getAttribute('data-theme') === 'dark';
         cachedThemeColors.inactiveTrack = cachedThemeColors.isDark ? '#273549' : '#E2E8F0';
-    } catch (e) {}
+    } catch (e) { }
 }
 updateCachedThemeColors();
 
@@ -109,7 +109,7 @@ function sortPlaylistTracks() {
     });
 
     if (currentPlayingTrack) {
-        const newIdx = playlist.findIndex(t => 
+        const newIdx = playlist.findIndex(t =>
             (currentPlayingTrack.id && t.id === currentPlayingTrack.id) ||
             (currentPlayingTrack.file && t.file === currentPlayingTrack.file)
         );
@@ -350,9 +350,9 @@ async function fetchMetadataForMP3(filename) {
 
     // Try reading header bytes for ID3 tag parsing with timeout
     try {
-        const res = await fetch(jsdelivrUrl, { 
+        const res = await fetch(jsdelivrUrl, {
             headers: fetchHeaders,
-            signal: AbortSignal.timeout ? AbortSignal.timeout(6000) : undefined 
+            signal: AbortSignal.timeout ? AbortSignal.timeout(6000) : undefined
         });
         if (res.ok || res.status === 206) {
             arrayBuffer = await res.arrayBuffer();
@@ -360,9 +360,9 @@ async function fetchMetadataForMP3(filename) {
         } else throw new Error();
     } catch (e) {
         try {
-            const res = await fetch(githubRawUrl, { 
+            const res = await fetch(githubRawUrl, {
                 headers: fetchHeaders,
-                signal: AbortSignal.timeout ? AbortSignal.timeout(6000) : undefined 
+                signal: AbortSignal.timeout ? AbortSignal.timeout(6000) : undefined
             });
             if (res.ok || res.status === 206) {
                 arrayBuffer = await res.arrayBuffer();
@@ -370,9 +370,9 @@ async function fetchMetadataForMP3(filename) {
             } else throw new Error();
         } catch (err) {
             try {
-                const res = await fetch(musicSubfolderUrl, { 
+                const res = await fetch(musicSubfolderUrl, {
                     headers: fetchHeaders,
-                    signal: AbortSignal.timeout ? AbortSignal.timeout(4000) : undefined 
+                    signal: AbortSignal.timeout ? AbortSignal.timeout(4000) : undefined
                 });
                 if (res.ok || res.status === 206) {
                     arrayBuffer = await res.arrayBuffer();
@@ -776,7 +776,7 @@ let atmosDisconnectTimeout = null;
 
 function toggleDolbyAtmos8D(enable) {
     if (!audioCtx || !dryGainNode || !atmosGainNode || !pannerNode || !compressorNode) return;
-    
+
     if (atmosDisconnectTimeout) {
         clearTimeout(atmosDisconnectTimeout);
         atmosDisconnectTimeout = null;
@@ -786,10 +786,10 @@ function toggleDolbyAtmos8D(enable) {
 
     if (enable) {
         // Connect spatial nodes first in silence
-        try { eqBusNode.connect(pannerNode); } catch (e) {}
-        try { pannerNode.connect(atmosGainNode); } catch (e) {}
-        try { atmosGainNode.connect(compressorNode); } catch (e) {}
-        try { compressorNode.connect(analyser); } catch (e) {}
+        try { eqBusNode.connect(pannerNode); } catch (e) { }
+        try { pannerNode.connect(atmosGainNode); } catch (e) { }
+        try { atmosGainNode.connect(compressorNode); } catch (e) { }
+        try { compressorNode.connect(analyser); } catch (e) { }
 
         // Equal-loudness smooth cross-ramp to spatial (~60ms)
         dryGainNode.gain.cancelScheduledValues(now);
@@ -812,8 +812,8 @@ function toggleDolbyAtmos8D(enable) {
         // Disconnect spatial nodes only after signal reaches silent zero (~80ms)
         atmosDisconnectTimeout = setTimeout(() => {
             if (!isAtmos8D) {
-                try { eqBusNode.disconnect(pannerNode); } catch (e) {}
-                try { compressorNode.disconnect(analyser); } catch (e) {}
+                try { eqBusNode.disconnect(pannerNode); } catch (e) { }
+                try { compressorNode.disconnect(analyser); } catch (e) { }
             }
         }, 80);
     }
@@ -842,7 +842,7 @@ function stopAtmosOrbit() {
 
 function updateDolbyAtmos8D() {
     if (!isAtmos8D || !pannerNode || !isPlaying) return;
-    
+
     atmosAngle += 0.014;
     const radius = 1.5;
     const x = Math.sin(atmosAngle) * radius;
@@ -860,7 +860,7 @@ function updateDolbyAtmos8D() {
 }
 
 // Lightweight stubs — heavy canvas visualizer replaced with zero-CPU GPU CSS equalizer
-function drawLiveWaves() {}
+function drawLiveWaves() { }
 function renderFlatBaseline() {
     stopAtmosOrbit();
 }
@@ -1134,7 +1134,7 @@ function renderPlaylist(filterQuery = "") {
     trackCountBadge.textContent = `${filtered.length} Track${filtered.length !== 1 ? 's' : ''}`;
 
     filtered.forEach((track) => {
-        const actualIndex = playlist.findIndex(t => 
+        const actualIndex = playlist.findIndex(t =>
             (track.id && t.id === track.id) ||
             (track.file && t.file === track.file) ||
             t === track
@@ -1232,7 +1232,7 @@ function cancelCurrentDownloadJob() {
     try {
         localStorage.removeItem('streamer_download_job');
         localStorage.setItem('streamer_download_cancelled', Date.now().toString());
-    } catch (e) {}
+    } catch (e) { }
     hideToast(0);
 }
 
@@ -1324,7 +1324,7 @@ async function claimAndRunJob(job) {
         localStorage.setItem('streamer_download_job', JSON.stringify(fresh));
 
         executeOfflineJobInMainPage(fresh);
-    } catch (e) {}
+    } catch (e) { }
 }
 
 async function executeOfflineJobInMainPage(job) {
@@ -1343,7 +1343,7 @@ async function executeOfflineJobInMainPage(job) {
             job.ownerType = 'main_page';
             job.lastHeartbeat = Date.now();
             localStorage.setItem('streamer_download_job', JSON.stringify(job));
-        } catch (e) {}
+        } catch (e) { }
     }
 
     try {
@@ -1507,7 +1507,7 @@ async function executeOfflineJobInMainPage(job) {
                 checkJob.isComplete = true;
                 localStorage.setItem('streamer_download_job', JSON.stringify(checkJob));
             }
-        } catch (e) {}
+        } catch (e) { }
 
         triggerDownload(downloadUrl, filename);
 
@@ -1515,7 +1515,7 @@ async function executeOfflineJobInMainPage(job) {
         hideToast(3500);
 
         setTimeout(() => {
-            try { localStorage.removeItem('streamer_download_job'); } catch (e) {}
+            try { localStorage.removeItem('streamer_download_job'); } catch (e) { }
         }, 3500);
 
     } catch (err) {
@@ -1523,7 +1523,7 @@ async function executeOfflineJobInMainPage(job) {
         console.error('Background render error:', err);
         showToast('Processing Error', 'Could not complete background render', false);
         hideToast(3000);
-        try { localStorage.removeItem('streamer_download_job'); } catch (e) {}
+        try { localStorage.removeItem('streamer_download_job'); } catch (e) { }
     } finally {
         isMainJobProcessing = false;
     }
@@ -1558,7 +1558,7 @@ function checkBackgroundDownloadJob() {
             showToast(`Download Ready: ${job.title}`, `Processed audio saved successfully`, false);
             hideToast(3500);
             setTimeout(() => {
-                try { localStorage.removeItem('streamer_download_job'); } catch (e) {}
+                try { localStorage.removeItem('streamer_download_job'); } catch (e) { }
             }, 3500);
             return;
         }
@@ -1887,7 +1887,7 @@ class WavySlider {
         this.container.addEventListener('pointerdown', (e) => {
             this.isSeeking = true;
             this.container.classList.add('seeking');
-            try { this.container.setPointerCapture(e.pointerId); } catch (err) {}
+            try { this.container.setPointerCapture(e.pointerId); } catch (err) { }
             this.handlePointer(e);
             this.wake();
         });
@@ -1903,7 +1903,7 @@ class WavySlider {
             if (this.isSeeking) {
                 this.isSeeking = false;
                 this.container.classList.remove('seeking');
-                try { this.container.releasePointerCapture(e.pointerId); } catch (err) {}
+                try { this.container.releasePointerCapture(e.pointerId); } catch (err) { }
                 this.wake();
             }
         };
@@ -1982,7 +1982,7 @@ class WavySlider {
 
         const isExpressive = document.documentElement.getAttribute('data-style') !== 'classic';
         const targetH = (this.isPlaying && isExpressive) ? (this.isHovered || this.isSeeking ? 10 : 8) : 0;
-        
+
         // Smoothly interpolate wave height (flattens on pause, springs up on play)
         this.currentWaveHeight += (targetH - this.currentWaveHeight) * 0.12;
 
@@ -2289,7 +2289,7 @@ function setMainTheme(theme, save = true) {
     if (theme !== 'dark') theme = 'light';
     document.documentElement.setAttribute('data-theme', theme);
     if (save) {
-        try { localStorage.setItem(THEME_STORAGE_MAIN, theme); } catch (e) {}
+        try { localStorage.setItem(THEME_STORAGE_MAIN, theme); } catch (e) { }
     }
     updateThemeUI();
 }
@@ -2299,7 +2299,7 @@ function setAccentTheme(accent, save = true) {
     if (!validAccents.includes(accent)) accent = 'cyan';
     document.documentElement.setAttribute('data-accent', accent);
     if (save) {
-        try { localStorage.setItem(THEME_STORAGE_ACCENT, accent); } catch (e) {}
+        try { localStorage.setItem(THEME_STORAGE_ACCENT, accent); } catch (e) { }
     }
     updateThemeUI();
 }
@@ -2308,7 +2308,7 @@ function setDesignStyle(style, save = true) {
     if (style !== 'classic') style = 'expressive';
     document.documentElement.setAttribute('data-style', style);
     if (save) {
-        try { localStorage.setItem(THEME_STORAGE_STYLE, style); } catch (e) {}
+        try { localStorage.setItem(THEME_STORAGE_STYLE, style); } catch (e) { }
     }
     updateThemeUI();
     if (typeof mainWavySlider !== 'undefined' && mainWavySlider) {
@@ -2495,13 +2495,13 @@ function updateEQRouting() {
 
     try {
         sourceNode.disconnect();
-    } catch (e) {}
+    } catch (e) { }
     if (sourceNodeNext) {
-        try { sourceNodeNext.disconnect(); } catch (e) {}
+        try { sourceNodeNext.disconnect(); } catch (e) { }
     }
 
     if (eqNodes.length > 0) {
-        try { eqNodes[eqNodes.length - 1].disconnect(); } catch (e) {}
+        try { eqNodes[eqNodes.length - 1].disconnect(); } catch (e) { }
     }
 
     if (shouldBypass) {
@@ -2559,7 +2559,7 @@ function setupEQNodes() {
 
     if (eqNodes.length > 0) {
         eqNodes.forEach(node => {
-            try { node.disconnect(); } catch (e) {}
+            try { node.disconnect(); } catch (e) { }
         });
         eqNodes = [];
     }
@@ -2793,7 +2793,7 @@ function cancelCrossfade() {
             audioNext.currentTime = 0;
             audioNext.removeAttribute('src');
             audioNext.load();
-        } catch (e) {}
+        } catch (e) { }
     }
     const userVol = parseFloat(document.getElementById('volumeSlider')?.value ?? 0.8);
     if (audio) {
@@ -2813,4 +2813,68 @@ function initWebAudioAndEQ() {
     }
 }
 window.initWebAudio = initWebAudioAndEQ;
+
+// =============================================================
+// TICK SOUND & HAPTIC FEEDBACK ON EVERY INTERACTIVE CLICK
+// Uses a separate AudioContext so it never conflicts with the music graph.
+// =============================================================
+let tickAudioCtx = null;
+
+function ensureTickAudioCtx() {
+    if (!tickAudioCtx || tickAudioCtx.state === 'closed') {
+        tickAudioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    }
+    if (tickAudioCtx.state === 'suspended') {
+        tickAudioCtx.resume();
+    }
+    return tickAudioCtx;
+}
+
+function playTickFeedback() {
+    try {
+        const ctx = ensureTickAudioCtx();
+        const now = ctx.currentTime;
+
+        // Short 25ms sine burst at 3200Hz with fast exponential decay
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = 'sine';
+        osc.frequency.value = 3200;
+        gain.gain.setValueAtTime(0.18, now);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.025);
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.start(now);
+        osc.stop(now + 0.03);
+    } catch (e) { }
+
+    // Haptic feedback if available (Android Chrome)
+    if ('vibrate' in navigator) {
+        navigator.vibrate(50);
+    }
+}
+
+// Interactive element selectors for delegated click listener
+const TICK_INTERACTIVE_SELECTORS = [
+    'button', 'a', 'input[type="range"]', 'input[type="checkbox"]',
+    '.tab-chip', '.eq-preset-chip', '.speed-chip', '.reverb-chip',
+    '.playlist-item', '.m3-switch', '.m3-switch-track', '.m3-switch-thumb',
+    '.m3-pill-btn', '.m3-icon-btn', '.m3-fab', '.theme-chip',
+    '.main-theme-chip', '.accent-chip', '.style-chip',
+    '.design-style-chip', '.chip', '[role="button"]', '[role="tab"]',
+    '.seek-slider', '.volume-slider', '.speed-slider'
+].join(',');
+
+document.body.addEventListener('click', (e) => {
+    if (e.target.closest(TICK_INTERACTIVE_SELECTORS)) {
+        playTickFeedback();
+    }
+}, { passive: true });
+
+// Continuous haptic buzz while dragging any slider
+document.body.addEventListener('input', (e) => {
+    if (e.target.matches('input[type="range"]') && 'vibrate' in navigator) {
+        navigator.vibrate(15);
+    }
+}, { passive: true });
 

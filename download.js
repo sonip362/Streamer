@@ -61,7 +61,7 @@ function updateCachedThemeColors() {
         cachedThemeColors.lightAccent = docStyle.getPropertyValue('--light-blue').trim() || '#38BDF8';
         cachedThemeColors.isDark = document.documentElement.getAttribute('data-theme') === 'dark';
         cachedThemeColors.inactiveTrack = cachedThemeColors.isDark ? '#273549' : '#E2E8F0';
-    } catch (e) {}
+    } catch (e) { }
 }
 updateCachedThemeColors();
 
@@ -196,7 +196,7 @@ function cancelProcessing() {
     try {
         localStorage.removeItem(STORAGE_KEY);
         localStorage.setItem('streamer_download_cancelled', Date.now().toString());
-    } catch (e) {}
+    } catch (e) { }
 
     hideToast(0);
     if (progressContainer) progressContainer.style.display = 'none';
@@ -234,7 +234,7 @@ window.addEventListener('beforeunload', () => {
                 localStorage.setItem(STORAGE_KEY, JSON.stringify(job));
             }
         }
-    } catch (e) {}
+    } catch (e) { }
 });
 
 // =============================================================
@@ -247,9 +247,9 @@ function updateEQRouting() {
 
     const shouldBypass = isEqBypassed;
 
-    try { sourceNode.disconnect(); } catch (e) {}
+    try { sourceNode.disconnect(); } catch (e) { }
     if (eqFilterNodes.length > 0) {
-        try { eqFilterNodes[eqFilterNodes.length - 1].disconnect(); } catch (e) {}
+        try { eqFilterNodes[eqFilterNodes.length - 1].disconnect(); } catch (e) { }
     }
 
     if (shouldBypass || eqFilterNodes.length === 0) {
@@ -483,7 +483,7 @@ class WavySlider {
         this.container.addEventListener('pointerdown', (e) => {
             this.isSeeking = true;
             this.container.classList.add('seeking');
-            try { this.container.setPointerCapture(e.pointerId); } catch (err) {}
+            try { this.container.setPointerCapture(e.pointerId); } catch (err) { }
             this.handlePointer(e);
             this.wake();
         });
@@ -499,7 +499,7 @@ class WavySlider {
             if (this.isSeeking) {
                 this.isSeeking = false;
                 this.container.classList.remove('seeking');
-                try { this.container.releasePointerCapture(e.pointerId); } catch (err) {}
+                try { this.container.releasePointerCapture(e.pointerId); } catch (err) { }
                 this.wake();
             }
         };
@@ -578,7 +578,7 @@ class WavySlider {
 
         const isExpressive = document.documentElement.getAttribute('data-style') !== 'classic';
         const targetH = (this.isPlaying && isExpressive) ? (this.isHovered || this.isSeeking ? 10 : 8) : 0;
-        
+
         this.currentWaveHeight += (targetH - this.currentWaveHeight) * 0.12;
 
         if (this.isPlaying && isExpressive) {
@@ -878,7 +878,7 @@ function updateBackgroundJob(progress, status, isComplete = false) {
         showToast(`Download Ready: ${currentTrack.title}`, `Saved to downloads`, false);
         hideToast(3500);
         setTimeout(() => {
-            try { localStorage.removeItem(STORAGE_KEY); } catch (e) {}
+            try { localStorage.removeItem(STORAGE_KEY); } catch (e) { }
         }, 3500);
     }
 }
@@ -895,7 +895,7 @@ try {
             if (statusText) statusText.textContent = `${job.status} (${job.progress}%)`;
         }
     }
-} catch (e) {}
+} catch (e) { }
 
 // =============================================================
 // 16-BIT PCM WAV ENCODER
@@ -974,7 +974,7 @@ btnStartRender.addEventListener('click', async () => {
                     localStorage.setItem(STORAGE_KEY, JSON.stringify(job));
                 }
             }
-        } catch (e) {}
+        } catch (e) { }
     }, 400);
 
     try {
@@ -1143,7 +1143,7 @@ btnStartRender.addEventListener('click', async () => {
                 checkJob.isComplete = true;
                 localStorage.setItem(STORAGE_KEY, JSON.stringify(checkJob));
             }
-        } catch (e) {}
+        } catch (e) { }
 
         // Trigger Download
         const a = document.createElement('a');
@@ -1197,7 +1197,7 @@ function applySavedTheme() {
             previewWavySlider.resize();
             previewWavySlider.wake();
         }
-    } catch (e) {}
+    } catch (e) { }
 }
 
 applySavedTheme();
@@ -1208,3 +1208,67 @@ window.addEventListener('storage', (e) => {
         applySavedTheme();
     }
 });
+
+// =============================================================
+// TICK SOUND & HAPTIC FEEDBACK ON EVERY INTERACTIVE CLICK
+// Uses a separate AudioContext so it never conflicts with the music graph.
+// =============================================================
+let tickAudioCtx = null;
+
+function ensureTickAudioCtx() {
+    if (!tickAudioCtx || tickAudioCtx.state === 'closed') {
+        tickAudioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    }
+    if (tickAudioCtx.state === 'suspended') {
+        tickAudioCtx.resume();
+    }
+    return tickAudioCtx;
+}
+
+function playTickFeedback() {
+    try {
+        const ctx = ensureTickAudioCtx();
+        const now = ctx.currentTime;
+
+        // Short 25ms sine burst at 3200Hz with fast exponential decay
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = 'sine';
+        osc.frequency.value = 3200;
+        gain.gain.setValueAtTime(0.18, now);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.025);
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.start(now);
+        osc.stop(now + 0.03);
+    } catch (e) { }
+
+    // Haptic feedback if available (Android Chrome)
+    if ('vibrate' in navigator) {
+        navigator.vibrate(50);
+    }
+}
+
+// Interactive element selectors for delegated click listener
+const TICK_INTERACTIVE_SELECTORS = [
+    'button', 'a', 'input[type="range"]', 'input[type="checkbox"]',
+    '.tab-chip', '.eq-preset-chip', '.speed-chip', '.reverb-chip',
+    '.playlist-item', '.m3-switch', '.m3-switch-track', '.m3-switch-thumb',
+    '.m3-pill-btn', '.m3-icon-btn', '.m3-fab', '.theme-chip',
+    '.main-theme-chip', '.accent-chip', '.style-chip',
+    '.design-style-chip', '.chip', '[role="button"]', '[role="tab"]',
+    '.seek-slider', '.volume-slider', '.speed-slider'
+].join(',');
+
+document.body.addEventListener('click', (e) => {
+    if (e.target.closest(TICK_INTERACTIVE_SELECTORS)) {
+        playTickFeedback();
+    }
+}, { passive: true });
+
+// Continuous haptic buzz while dragging any slider
+document.body.addEventListener('input', (e) => {
+    if (e.target.matches('input[type="range"]') && 'vibrate' in navigator) {
+        navigator.vibrate(15);
+    }
+}, { passive: true });
