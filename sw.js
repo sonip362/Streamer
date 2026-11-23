@@ -1,23 +1,28 @@
-const CACHE_NAME = 'streamer-pwa-v26';
+const CACHE_NAME = 'streamer-pwa-v27';
+
+// Resolve base URLs relative to the Service Worker's own location (self.location)
+// This guarantees seamless caching whether hosted at domain root or in a GitHub Pages subdirectory.
+const getRelativeUrl = (path) => new URL(path, self.location.href).href;
+
 const ASSETS_TO_CACHE = [
-    '/',
-    '/index.html',
-    '/style.css',
-    '/input.css',
-    '/script.js',
-    '/manifest.json',
-    '/download.html',
-    '/download.js',
-    '/icons/icon-192.png',
-    '/icons/icon-512.png',
-    '/icons/Material3.png'
-];
+    './',
+    'index.html',
+    'style.css',
+    'input.css',
+    'script.js',
+    'manifest.json',
+    'download.html',
+    'download.js',
+    'icons/icon-192.png',
+    'icons/icon-512.png',
+    'icons/Material3.png'
+].map(getRelativeUrl);
 
 // Install Event - Cache Static Assets
 self.addEventListener('install', (event) => {
     event.waitUntil(
         caches.open(CACHE_NAME).then((cache) => {
-            console.log('[SW] Caching app shell & static assets');
+            console.log('[SW] Caching app shell & static assets:', ASSETS_TO_CACHE);
             return cache.addAll(ASSETS_TO_CACHE);
         }).then(() => self.skipWaiting())
     );
@@ -44,7 +49,7 @@ self.addEventListener('fetch', (event) => {
     const url = new URL(event.request.url);
 
     // For audio stream requests or API endpoints, use Network-First strategy
-    if (url.pathname.startsWith('/api/') || url.pathname.endsWith('.mp3') || url.hostname.includes('jamendo') || url.hostname.includes('github') || url.hostname.includes('jsdelivr')) {
+    if (url.pathname.includes('/api/') || url.pathname.endsWith('.mp3') || url.hostname.includes('jamendo') || url.hostname.includes('github') || url.hostname.includes('jsdelivr')) {
         event.respondWith(
             fetch(event.request).catch(() => {
                 return caches.match(event.request);
@@ -53,7 +58,7 @@ self.addEventListener('fetch', (event) => {
         return;
     }
 
-    // Cache-First for static UI shell assets
+    // Cache-First for static UI shell assets with offline navigation fallback
     event.respondWith(
         caches.match(event.request).then((cachedResponse) => {
             if (cachedResponse) {
@@ -68,6 +73,12 @@ self.addEventListener('fetch', (event) => {
                     cache.put(event.request, responseToCache);
                 });
                 return networkResponse;
+            }).catch(() => {
+                // If offline navigation fails to match, fallback to cached index
+                if (event.request.mode === 'navigate') {
+                    return caches.match(getRelativeUrl('./'))
+                        .then((res) => res || caches.match(getRelativeUrl('index.html')));
+                }
             });
         })
     );

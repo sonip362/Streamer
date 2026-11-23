@@ -1269,6 +1269,21 @@ document.body.addEventListener('click', (e) => {
 // Continuous haptic buzz while dragging any slider
 document.body.addEventListener('input', (e) => {
     if (e.target.matches('input[type="range"]') && 'vibrate' in navigator) {
-        navigator.vibrate(15);
+        navigator.vibrate(25);
     }
 }, { passive: true });
+
+// --- PWA Service Worker Registration (Base-path-aware for GitHub Pages subdirectories) ---
+if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+        const swUrl = new URL('sw.js', document.baseURI || window.location.href).href;
+        navigator.serviceWorker.register(swUrl, { scope: './' })
+            .then(reg => {
+                console.log('PWA ServiceWorker registered with scope:', reg.scope);
+            })
+            .catch(err => {
+                console.error('ServiceWorker registration failed:', err);
+            });
+    });
+}
+

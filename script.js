@@ -2248,10 +2248,11 @@ document.addEventListener('keydown', (e) => {
 // Load tracks directly from MP3 files with ID3 tag parsing
 loadMP3Tracks();
 
-// --- PWA Service Worker Registration ---
+// --- PWA Service Worker Registration (Base-path-aware for GitHub Pages subdirectories) ---
 if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
-        navigator.serviceWorker.register('/sw.js')
+        const swUrl = new URL('sw.js', document.baseURI || window.location.href).href;
+        navigator.serviceWorker.register(swUrl, { scope: './' })
             .then(reg => {
                 console.log('PWA ServiceWorker registered with scope:', reg.scope);
             })
